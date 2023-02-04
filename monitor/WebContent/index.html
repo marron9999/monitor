@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="x-ua-compatible" content="IE=Edge">
+<title>Monitor</title>
+<script type="text/javascript" src="index.js"></script>
+<link type="text/css" href="index.css" rel="stylesheet">
+<link rel="icon" href="none.png">
+</head>
+<body>
+<div id="tool">
+<input id="in">
+<span id="send" onclick="send_in()" tabindex=0>Send</span>
+<select id="zoom" onselect="sel_zoom()" onchange="sel_zoom()" >
+<option value=0 selected>Auto</option>
+<option value=50> 50%</option>
+<option value=75> 75%</option>
+<option value=100>100%</option>
+<option value=125>125%</option>
+<option value=150>150%</option>
+</select>
+</div>
+<div id="show" onclick="showlist()">◀</div>
+<div id="hide" onclick="hidelist(1)" style="display:none;">▶</div>
+<div id="body" onclick="_focus()">
+<canvas id="canvas" contenteditable="true"></canvas>
+<div id="keys" ><span id="shift" onclick="shift(2)">Shift</span>
+<span id="alt" onclick="alt(2)">Alt</span>
+<span id="ctrl" onclick="ctrl(2)">Ctrl</span></div>
+<div id="cursor" style="display:none;"></div>
+</div>
+<div onmouseleave='hidelist(1000)' id="list"></div>
+</body>
+</html>

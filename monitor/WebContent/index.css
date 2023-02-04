@@ -1,0 +1,140 @@
+* {
+	font-family: Arial,Verdana,"Lucida Grande","メイリオ",Meiryo,"ＭＳ Ｐゴシック","ヒラギノ角ゴ Pro W3",sans-serif;
+	font-size: 14px;
+	user-select: none;
+}
+
+body {
+	background: #ddd;	
+}
+
+#body {
+	position: absolute;
+	top: 25px;
+	left:0px;
+	display: inline-block;
+	padding: 0 0;
+	margin: 0 0;
+	height: calc(100% - 25px);
+	width: calc(100%);
+	overflow: auto;
+}
+#canvas {
+	position: absolute;
+	top: 3px;
+	left:3px;
+	display: inline-block;
+	background: white;
+	cursor: default;
+}
+#cursor {
+	position: absolute;
+	top: 0;
+	left:0;
+	display: inline-block;
+	z-index: 1;
+	width: 4px;
+	height: 4px;
+	border: 4px solid #f008;
+	border-radius: 50% 50%;
+}
+
+#list {
+	position: absolute;
+	padding: 5px 5px;
+	top: 25px;
+	right:0px;
+	z-index: 2;
+	height: calc(100% - 36px);
+	width: 200px;
+	background: white;
+	border-top: 1px solid #ccc;
+	border-left: 1px solid #ccc;
+	overflow: hidden;
+	display: none;
+}
+#list.s {
+	display: inline-block;
+}
+
+#tool {
+	position: absolute;
+	padding-top: 2px;
+	padding-left: 2px;
+	top: 0px;
+	left: 0;
+	display: inline-block;
+	width: calc(100% - 4px);
+	height: 22px;
+	white-space: nowrap;
+    border-bottom: 1px solid #ccc;
+}
+#in {
+	border: 1px solid gray;
+	margin-left: 2px;
+	width: calc(100% - 150px);
+}
+#send {
+	display: inline-block;
+	padding: 1px 4px;
+	border: 1px solid gray;
+	border-radius: 4px 4px;
+	margin-left: 2px;
+	cursor: pointer;
+}
+#zoom {
+	display: inline-block;
+	border: 1px solid gray;
+	border-radius: 4px 4px;
+	margin-left: 2px;
+	cursor: pointer;
+}
+#show,
+#hide {
+	position: absolute;
+	top: 2px;
+	right:4px;
+	z-index: 1;
+	cursor: pointer;
+}
+
+#keys {
+	position: absolute;
+	display: inline-block;
+	top: 3px;
+	left:3px;
+	z-index: 1;
+}
+#ctrl, #alt, #shift {
+	font-size: 9px;
+	position: absolute;
+	display: inline-block;
+	border: 1px solid #aaa;
+	border-radius: 4px 4px;
+	text-align: center;
+	width: 30px;
+	top: 3px;
+	left:0px;
+	cursor: pointer;
+	color: #aaa;
+	text-shadow:
+		-1px -1px 1px white,
+		1px -1px 1px white,
+		-1px 1px 1px white,
+		1px 1px 1px white,
+		-1px 0px 1px white,
+		1px 0px 1px white,
+		0px 1px 1px white,
+		0px -1px 1px white;
+}
+#ctrl.s, #alt.s, #shift.s {
+	border-color: blue;
+	color: blue;
+}
+#ctrl.l, #alt.l, #shift.l {
+	border-color: red;
+	color: red;
+}
+#shift { left:70px;}
+#alt { left:36px;}
+#ctrl { left:2px;}
