@@ -242,7 +242,7 @@ function clients(o) {
 		return;
 	}
 	if(o.length > 2) o[1] += " " + o[2];
-	clients_list += "<div onclick='select(this)'>" + o[1] + "</div>";
+	clients_list += "<div class=s onclick='select(this)'>" + o[1] + "</div>";
 	if(o[1] == monitor) clients_eq = true;
 }
 
@@ -254,6 +254,10 @@ function select(e) {
 	h = E('cursor');
 	h.style.display = "inline-block";
 	hidelist(1);
+	if(event != undefined) {
+		event.preventDefault();
+		event.stopPropagation();
+	}	
 }
 
 var hidelist_time = null;
@@ -262,7 +266,7 @@ function showlist() {
 		clearTimeout(hidelist_time);
 		hidelist_time = null;
 	}
-	E("list").className = "s";
+	E("lists").className = "s";
 	E("show").style.display = "none";
 	E("hide").style.display = "";
 }
@@ -273,7 +277,7 @@ function hidelist(htime) {
 	}
 	hidelist_time = setTimeout(function() {
 		hidelist_time = null;
-		E("list").className = "";
+		E("lists").className = "";
 		E("show").style.display = "";
 		E("hide").style.display = "none";
 	}, htime);
@@ -293,15 +297,35 @@ var _ctrl=0;
 function alt(m) {
 	if(m != undefined) _alt = m;
 	else _alt = (_alt==0)? 1 : 0;
-	E("alt").className = (_alt==2)? "l" : (_alt==1)? "s" : "";	
+	E("alt").className = (_alt==2)? "l" : (_alt==1)? "s" : "";
+	if(event != undefined) {
+		event.preventDefault();
+		event.stopPropagation();
+	}	
 }
 function shift(m) {
 	if(m != undefined) _shift = m;
 	else _shift = (_shift==0)? 1 : 0;
 	E("shift").className = (_shift==2)? "l" : (_shift==1)? "s" : "";	
+	if(event != undefined) {
+		event.preventDefault();
+		event.stopPropagation();
+	}	
 }
 function ctrl(m) {
 	if(m != undefined) _ctrl = m;
 	else _ctrl = (_ctrl==0)? 1 : 0;
 	E("ctrl").className = (_ctrl==2)? "l" : (_ctrl==1)? "s" : "";
+	if(event != undefined) {
+		event.preventDefault();
+		event.stopPropagation();
+	}	
+}
+
+function load() {
+	ws.send("browser");
+	if(event != undefined) {
+		event.preventDefault();
+		event.stopPropagation();
+	}	
 }

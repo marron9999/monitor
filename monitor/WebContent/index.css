@@ -39,7 +39,7 @@ body {
 	border-radius: 50% 50%;
 }
 
-#list {
+#lists {
 	position: absolute;
 	padding: 5px 5px;
 	top: 25px;
@@ -53,8 +53,21 @@ body {
 	overflow: hidden;
 	display: none;
 }
-#list.s {
+#lists.s {
 	display: inline-block;
+}
+#list {
+	display: inline-block;
+}
+#list > div.s {
+	cursor: pointer;
+}
+#load {
+	display: inline-block;
+	position: absolute;
+	top: 2px;
+	right: 2px;
+	cursor: pointer;
 }
 
 #tool {
@@ -81,6 +94,7 @@ body {
 	border-radius: 4px 4px;
 	margin-left: 2px;
 	cursor: pointer;
+	background: white;
 }
 #zoom {
 	display: inline-block;

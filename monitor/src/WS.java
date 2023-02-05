@@ -48,6 +48,9 @@ public class WS {
 	
 	@OnOpen
     public void onOpen(Session session) {
+		synchronized (browsers) {
+			
+		}
 		// NONE
 	}
 
@@ -95,14 +98,19 @@ public class WS {
     	|| ope[0].equalsIgnoreCase("keydown")
     	|| ope[0].equalsIgnoreCase("keyup")
     	) {
+    		String id = null;
+    		synchronized (browsers) {
+    			id = view.get(session.getId());
+    		}
+    		if(id == null) return;
     		Session client = null;
     		synchronized (monitors) {
-    			client = clients.get(view.get(session.getId()));
+    			client = clients.get(id);
     		}
+    		if(client == null) return;
 			try {
-	    		if(client != null
-   	    		&& client.isOpen())
-	    			client.getBasicRemote().sendText(message, true);
+	   	    	if(client.isOpen())
+		    		client.getBasicRemote().sendText(message, true);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
@@ -162,14 +170,17 @@ public class WS {
     	if(ope[0].equalsIgnoreCase("mouse")) {
     		String t = String.join(" ", ope);
     		synchronized (browsers) {
-	        	for(String key : browsers.keySet()) {
-	    			try {
-	            		Session browser = browsers.get(key);
-	            		if(browser.isOpen())
-	            			browser.getBasicRemote().sendText(t);
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
+	        	for(String key : view.keySet()) {
+            		String id = view.get(key);
+            		if(id.equals(session.getId())) {
+    	    			try {
+    	            		Session browser = browsers.get(key);
+    	            		if(browser.isOpen())
+    	            			browser.getBasicRemote().sendText(t);
+    					} catch (Exception e) {
+    						e.printStackTrace();
+    					}
+            		}
 	        	}
     		}
     		return;
@@ -187,10 +198,12 @@ public class WS {
     				session = browsers.get(key);
             		if(session.isOpen())
             			session.getBasicRemote().sendText("clients [");
+            		else remove(session.getId());
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
         	}
+        	keyset = browsers.keySet();
         	for(String ckey : clientKeys) {
         		session = clients.get(ckey);
         		Monitor monitor = monitors.get(ckey);
@@ -225,6 +238,10 @@ public class WS {
     @OnClose
     public void onClose(Session session) {
     	String id = session.getId();
+		remove(id);
+    }
+
+    private void remove(String id) {
 		synchronized (monitors) {
 			if(clients.containsKey(id)) {
         		monitors.remove(id);
