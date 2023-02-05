@@ -1,4 +1,3 @@
-var ws;
 var ctx;
 var monitor = null;
 var id = "";
@@ -64,6 +63,26 @@ window.onload = function() {
 		sel_zoom();
 	};
 };
+
+
+function rfocus() {
+	if(monitor != null) {
+		E('tool').className = "s2";
+		E('body').className = "s2";
+	} else {
+		E('tool').className = "";
+		E('body').className = "";
+	}
+}
+function rblur() {
+	if(monitor != null) {
+		E('tool').className = "s1";
+		E('body').className = "s1";
+	} else {
+		E('tool').className = "";
+		E('body').className = "";
+	}
+}
 
 var zoom = 0;
 function sel_zoom() {
@@ -228,6 +247,7 @@ function _screen() {
 
 var clients_list = "";
 var clients_eq = false;
+var clients_no = 0;
 function clients(o) {
 	if(o[1] == "[") {
 		clients_list = "";
@@ -241,16 +261,44 @@ function clients(o) {
 		}
 		return;
 	}
+	clients_no++;
 	if(o.length > 2) o[1] += " " + o[2];
-	clients_list += "<div class=s onclick='select(this)'>" + o[1] + "</div>";
-	if(o[1] == monitor) clients_eq = true;
+	clients_list += "<div class=s onclick='select(this)' id='h" + clients_no + "'";
+	if(o[1] == monitor) {
+		clients_eq = true;
+		clients_list += " class='s'><img src='monitor.png' id='ih" + clients_no + "'>";
+	} else {
+		clients_list += "><img src='none.png' id='ih" + clients_no + "'>";
+	}
+	clients_list += "<span id='nh" + clients_no + "'>" + o[1] + "</span></div>";
 }
 
 function select(e) {
-	monitor = e.innerHTML;
+	let h = 0;
+	if(monitor == E('n' + e.id).innerHTML) {
+		h = E('i' + e.id);
+		h.src = "none.png";
+		h.className = "";
+		monitor = null;
+		clients_eq = false;
+		document.title = "Disconnect";
+		ws.send("view");
+		return;
+	}
+	for(let i=1; i<=clients_no; i++) {
+		h = E('ih' + i);
+		if(h.src != "none.png") {
+			h.src = "none.png";
+			h.className = "";
+		}
+	}
+	h = E('i' + e.id);
+	h.src = "monitor.png";
+	h.className = "s";
+	monitor = E('n' + e.id).innerHTML;
 	document.title = monitor;
-	id = e.innerHTML.split(":")[0];
-	ws.send("browser " + id);
+	id = monitor.split(":")[0];
+	ws.send("view " + id);
 	h = E('cursor');
 	h.style.display = "inline-block";
 	hidelist(1);
@@ -295,31 +343,34 @@ var _alt=0;
 var _shift=0;
 var _ctrl=0;
 function alt(m) {
-	if(m != undefined) _alt = m;
-	else _alt = (_alt==0)? 1 : 0;
-	E("alt").className = (_alt==2)? "l" : (_alt==1)? "s" : "";
+	if(m != 2) _alt = m;
+	else _alt = (_alt!=m)? m : 0;
+	E("alt").className = "s" + _alt;
 	if(event != undefined) {
 		event.preventDefault();
 		event.stopPropagation();
-	}	
+		E("canvas").focus();
+	}
 }
 function shift(m) {
-	if(m != undefined) _shift = m;
-	else _shift = (_shift==0)? 1 : 0;
-	E("shift").className = (_shift==2)? "l" : (_shift==1)? "s" : "";	
+	if(m != 2) _shift = m;
+	else _shift = (_shift!=m)? m : 0;
+	E("shift").className = "s" + _shift;
 	if(event != undefined) {
 		event.preventDefault();
 		event.stopPropagation();
-	}	
+		E("canvas").focus();
+	}
 }
 function ctrl(m) {
-	if(m != undefined) _ctrl = m;
-	else _ctrl = (_ctrl==0)? 1 : 0;
-	E("ctrl").className = (_ctrl==2)? "l" : (_ctrl==1)? "s" : "";
+	if(m != 2) _ctrl = m;
+	else _ctrl = (_ctrl!=m)? m : 0;
+	E("ctrl").className = "s" + _ctrl;
 	if(event != undefined) {
 		event.preventDefault();
 		event.stopPropagation();
-	}	
+		E("canvas").focus();
+	}
 }
 
 function load() {

@@ -6,7 +6,7 @@
 <title>Monitor</title>
 <script type="text/javascript" src="index.js"></script>
 <link type="text/css" href="index.css" rel="stylesheet">
-<link rel="icon" href="none.png">
+<link rel="icon" href="monitor.png">
 </head>
 <body>
 <div id="tool">
@@ -24,13 +24,15 @@
 <div id="show" onclick="showlist()">◀</div>
 <div id="hide" onclick="hidelist(1)" style="display:none;">▶</div>
 <div id="body" onclick="_focus()">
-<canvas id="canvas" contenteditable="true"></canvas>
+<canvas id="canvas" contenteditable="true"
+onfocus="rfocus()" onblur="rblur()"></canvas>
 <div id="keys" ><span id="shift" onclick="shift(2)">Shift</span>
 <span id="alt" onclick="alt(2)">Alt</span>
 <span id="ctrl" onclick="ctrl(2)">Ctrl</span></div>
 <div id="cursor" style="display:none;"></div>
 </div>
 <div onmouseleave='hidelist(1000)' id="lists">
-<div id="list"></div><img id=load src="load.png" onclick="load()"></div>
+<div><img id=load src="load.png" onclick="load()"></div>
+<div id="list"></div></div>
 </body>
 </html>
