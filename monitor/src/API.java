@@ -21,7 +21,7 @@ public class API extends HttpServlet {
 		String id = getParameter(request, "id");
 		if(id != null
 		&& id.length() > 0) {
-			BufferedImage img = WS.image(id);
+			BufferedImage img = WS.client_image(id);
 			if(img != null) {
 				ServletOutputStream sos = getImageOutputStream(response, "PNG");
 				ImageIO.write(img, "PNG", sos);
@@ -41,7 +41,7 @@ public class API extends HttpServlet {
 		&& id.length() > 0) {
 			BufferedImage img = getRequestBody_Image(request);
 			if(img != null) {
-				WS.image(id, img);
+				WS.client_image(id, img);
 				response.setStatus(HttpServletResponse.SC_OK);
 				return;
 			}

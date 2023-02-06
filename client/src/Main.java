@@ -1,3 +1,4 @@
+import java.awt.Graphics;
 import java.awt.MouseInfo;
 import java.awt.Point;
 import java.awt.Rectangle;
@@ -17,21 +18,65 @@ import java.net.http.WebSocket.Listener;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 
-public class Client implements WebSocket.Listener {
+public class Main implements WebSocket.Listener {
 	private HttpClient client;
 	private WebSocket ws;
 	private Robot robot;
-	private Monitor monitor;
-	private String site;
+	private Monitor monitor = null;
+	private String site = "ws://192.168.1.127:8080/monitor/ws";
 	private String id = null;
-	private int mx = -1, my = -1;
+	private int mouse_x = -1, mouse_y = -1;
+	private boolean verbose = false;
+	private int sleep = 500;
 
-	public void run(String site, String pc) throws Exception {
-		this.site = site;
+	public boolean parse(String opt) throws Exception {
+		opt = opt.replace("/", "-").toLowerCase();
+		if(opt.equalsIgnoreCase("-v")
+		|| opt.equalsIgnoreCase("--verbose")) {
+			verbose = true;
+			return true;
+		}
+		if(opt.startsWith("-s")) {
+			try {
+				sleep = Integer.parseInt(opt.substring(2));
+			} catch (Exception e) {
+				// NONE
+			}
+			return true;
+		}
+		if(opt.equalsIgnoreCase("--sleep")) {
+			try {
+				sleep = Integer.parseInt(opt.substring(7));
+			} catch (Exception e) {
+				// NONE
+			}
+			return true;
+		}
+		
+		return false;
+	}
+
+	public void run(String[] args) throws Exception {
 		robot = new Robot();
+		monitor = new Monitor(Monitor.toolkit.getScreenSize(), null);
+		int i=0;
+		while(i < args.length) {
+			if( ! parse(args[i])) break;
+			i++;
+		}
+		if(i < args.length) {
+			if(args[i].indexOf(":") > 0)
+				site = "ws://" + args[i] + "/monitor/ws";
+			else site = "ws://" + args[i] + ":8080/monitor/ws";
+			i++;
+			if(i < args.length) {
+				monitor = new Monitor(Monitor.toolkit.getScreenSize(), args[i]);
+			}
+		}
+		if(monitor == null)
+			monitor = new Monitor(Monitor.toolkit.getScreenSize(), null);
 		System.out.println("Server: " + site);
 		URI uri = URI.create(site);
-		monitor = new Monitor(Monitor.toolkit.getScreenSize(), null);
 		Rectangle rect = new Rectangle(monitor.size());		
 		client = HttpClient.newHttpClient();
 		WebSocket.Builder wsb = client.newWebSocketBuilder();
@@ -42,41 +87,43 @@ public class Client implements WebSocket.Listener {
 			} catch (Exception e) {
 				//e.printStackTrace();
 			}
-			Monitor.sleep(100);
+			Monitor.sleep(500);
 		}
 
-		String msg = "screen " + rect.width + " " + rect.height + " " + monitor.name();
+		int w = rect.width;
+		int h = rect.height;
+		String msg = "screen " + w + " " + h + " " + monitor.name();
 		System.out.println(msg);
 		ws.sendText(msg, true);
 		
 		while(id == null) {
-			Monitor.sleep(100);
+			Monitor.sleep(500);
 		}
 
+		BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
 		while(ws != null) {
-			BufferedImage img = robot.createScreenCapture(rect);
-			boolean need_sleep = monitor.diff(img);
-			if( ! need_sleep) {
+	    	Graphics g = img.getGraphics();
+	    	g.drawImage(robot.createScreenCapture(rect), 0, 0, w, h, 0, 0, w, h, null);
+	   		g.dispose();
+	   		BufferedImage diff = monitor.diff(img);
+			if(diff != null) {
 				try {
-					post(monitor.buffer());
+					post(monitor.buffer(diff));
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
 			}
 
 			Point p = MouseInfo.getPointerInfo().getLocation();
-			if(p.x != mx || p.y != mx) {
-				mx = p.x;
-				my = p.y;
+			if(p.x != mouse_x || p.y != mouse_x) {
+				mouse_x = p.x;
+				mouse_y = p.y;
 				if(ws != null) {
-					ws.sendText("mouse " + mx + " " + my, true);
+					ws.sendText("mouse " + mouse_x + " " + mouse_y, true);
 				}
-				need_sleep = false;
 			}
 
-			if(need_sleep) {
-				Monitor.sleep(100);
-			}
+			Monitor.sleep(sleep);
 		}
 	}
 		
@@ -116,7 +163,8 @@ public class Client implements WebSocket.Listener {
 			String message = text;
 			text = "";
 			boolean rc = onMessage(webSocket, message);
-			System.out.println(rc + ": " + message);
+			if(verbose)
+				System.out.println(rc + ": " + message);
 		}
 		return Listener.super.onText(webSocket, data, last);
 	}
@@ -143,23 +191,16 @@ public class Client implements WebSocket.Listener {
 		if(ope[0].trim().equalsIgnoreCase("keydown")) {
 			boolean rc = true;
 			try {
-				int w = Integer.parseInt(ope[1].trim()); 
-				if(w == 13) w = KeyEvent.VK_ENTER;
-				if(ctrl) robot.keyPress(KeyEvent.VK_CONTROL);
-				if(alt) robot.keyPress(KeyEvent.VK_ALT);
-				if(shift) robot.keyPress(KeyEvent.VK_SHIFT);
+				int _key = Integer.parseInt(ope[1].trim()); 
+				int vkey = Monitor.keycode(_key, shift);
 				try {
-					robot.keyPress(w);
-					if( ! ctrl) {
-						robot.keyRelease(w);
-					}
+					if(shift && Monitor.noshift(_key))
+						robot.keyRelease(KeyEvent.VK_SHIFT);
+					robot.keyPress(vkey);
 				} catch (Exception e) {
 					e.printStackTrace();
 					rc = false;
 				}
-				if(shift) robot.keyRelease(KeyEvent.VK_SHIFT);
-				if(alt) robot.keyRelease(KeyEvent.VK_ALT);
-				if(ctrl) robot.keyRelease(KeyEvent.VK_CONTROL);
 			} catch (Exception e) {
 				e.printStackTrace();
 				rc = false;
@@ -170,10 +211,10 @@ public class Client implements WebSocket.Listener {
 		if(ope[0].trim().equalsIgnoreCase("keyup")) {
 			boolean rc = true;
 			try {
-				int w = Integer.parseInt(ope[1].trim()); 
+				int _key = Integer.parseInt(ope[1].trim()); 
+				int vkey = Monitor.keycode(_key, shift);
 				try {
-					if(ctrl)
-						robot.keyRelease(w);
+					robot.keyRelease(vkey);
 				} catch (Exception e) {
 					e.printStackTrace();
 					rc = false;
@@ -183,6 +224,35 @@ public class Client implements WebSocket.Listener {
 				rc = false;
 			}
 			return rc;
+		}
+
+		if(ope[0].trim().equalsIgnoreCase("dblclick")) {
+			if(ope[3].equals("0")) { 
+				if(mouse(ope)) {
+					robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+					robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+					robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
+					robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+					return true;
+				}
+			} else if(ope[3].equals("1")) { 
+				if(mouse(ope)) {
+					robot.mousePress(InputEvent.BUTTON2_DOWN_MASK);
+					robot.mouseRelease(InputEvent.BUTTON2_DOWN_MASK);
+					robot.mousePress(InputEvent.BUTTON2_DOWN_MASK);
+					robot.mouseRelease(InputEvent.BUTTON2_DOWN_MASK);
+					return true;
+				}
+			} else if(ope[3].equals("2")) {
+				if(mouse(ope)) {
+					robot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
+					robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
+					robot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
+					robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
+					return true;
+				}
+			}
+			return false;
 		}
 
 		if(ope[0].trim().equalsIgnoreCase("mousedown")) {
@@ -210,7 +280,7 @@ public class Client implements WebSocket.Listener {
 			}
 			return false;
 		}
-
+		
 		if(ope[0].trim().equalsIgnoreCase("mouseup")) {
 			if(ctrl) {
 				mouse(ope);
@@ -262,8 +332,8 @@ public class Client implements WebSocket.Listener {
 			//System.out.println(String.join(" ", ope));
 			int x = Integer.parseInt(ope[1].trim()); 
 			int y = Integer.parseInt(ope[2].trim());
-			if(mx >= 0 && my >= 0) {
-				if(mx != x || my != y)
+			if(mouse_x >= 0 && mouse_y >= 0) {
+				if(mouse_x != x || mouse_y != y)
 					robot.mouseMove(x, y);
 			}
 			return true;
@@ -296,17 +366,7 @@ public class Client implements WebSocket.Listener {
 
 	public static void main(String[] args) {
 		try {
-			String site = "ws://localhost:8080/monitor/ws";
-			String pc = null;
-			if(args.length > 0) {
-				if(args.length > 1) {
-					pc = args[1];
-				}
-				if(args[0].indexOf(":") > 0)
-					site = "ws://" + args[0] + "/monitor/ws";
-				else site = "ws://" + args[0] + ":8080/monitor/ws";
-			}
-			new Client().run(site, pc);
+			new Main().run(args);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

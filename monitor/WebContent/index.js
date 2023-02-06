@@ -9,7 +9,7 @@ function E(id) {
 	return document.getElementById(id);
 }
 
-function _focus() {
+function bodyfocus() {
 	let c = E('canvas');
 	c.focus();	
 }
@@ -35,6 +35,7 @@ window.onload = function() {
 	let c = E('canvas');
 	c.addEventListener('keydown', keydown);
 	c.addEventListener('keyup', keyup);
+	c.addEventListener('dblclick', dblclick);
 	c.addEventListener('mousedown', mousedown);
 	c.addEventListener('mousemove', mousemove);
 	c.addEventListener('mouseup', mouseup);
@@ -65,7 +66,7 @@ window.onload = function() {
 };
 
 
-function rfocus() {
+function canvasfocus() {
 	if(monitor != null) {
 		E('tool').className = "s2";
 		E('body').className = "s2";
@@ -74,7 +75,7 @@ function rfocus() {
 		E('body').className = "";
 	}
 }
-function rblur() {
+function canvasblur() {
 	if(monitor != null) {
 		E('tool').className = "s1";
 		E('body').className = "s1";
@@ -113,80 +114,92 @@ function send_in() {
 	}
 } 
 
-function keydown(ev) {
-	let k = keys(ev);
-	if(monitor != null && ( ! ev.repeat)) {
-		ws.send("keydown " + ev.keyCode + k);
+function keydown(event) {
+	let k = keys(event);
+	if(monitor != null && ( ! event.repeat)) {
+		ws.send("keydown " + event.keyCode + k);
 		if(_ctrl > 1) ctrl(0);
 		if(_shift > 1) shift(0);
 		if(_alt > 1) alt(0);
 	}
-	if(ev.keyCode == 17) ctrl(1);
-	else if(ev.keyCode == 16) shift(1);
-	else if(ev.keyCode == 18) alt(1);
-	ev.preventDefault();
-	ev.stopPropagation();
+	if(event.keyCode == 17) ctrl(1);
+	else if(event.keyCode == 16) shift(1);
+	else if(event.keyCode == 18) alt(1);
+	event.preventDefault();
+	event.stopPropagation();
 	return false;
 } 
-function keyup(ev) {
-	let k = keys(ev);
+function keyup(event) {
+	let k = keys(event);
 	if(monitor != null) {
-		ws.send("keyup " + ev.keyCode + k);
+		ws.send("keyup " + event.keyCode + k);
 	}
-	if(ev.keyCode == 17) ctrl(0);
-	else if(ev.keyCode == 16) shift(0);
-	else if(ev.keyCode == 18) alt(0);
-	ev.preventDefault();
-	ev.stopPropagation();
+	if(event.keyCode == 17) ctrl(0);
+	else if(event.keyCode == 16) shift(0);
+	else if(event.keyCode == 18) alt(0);
+	event.preventDefault();
+	event.stopPropagation();
 	return false;
 } 
 
-var _mx = -1, _my = -1;
-function mousewheel(ev) {
-	let k = keys(ev);
+var mouseevent_x = -1;
+var mouseevent_y = -1;
+function mouseevent(event) {
+	mouseevent_x = parseInt(event.layerX * 100 / zoom);
+	mouseevent_y = parseInt(event.layerY * 100 / zoom);
+	return mouseevent_x + " " + mouseevent_y;
+} 
+function mousewheel(event) {
+	let k = keys(event);
 	if(monitor != null) {
-		ws.send("mousewheel " + _mx + " " + _my + " " + ev.deltaY + k);
+		ws.send("mousewheel "
+			+ mouseevent_x + " " + mouseevent_y
+			+ " " + event.deltaY + k);
 	}
-	ev.preventDefault();
-	ev.stopPropagation();
+	event.preventDefault();
+	event.stopPropagation();
 	return false;
 } 
-function mousemove(ev) {
-	let k = keys(ev);
-	if(monitor != null && ev.ctrlKey) {
-		_mx = parseInt(ev.layerX * 100 / zoom);
-		_my = parseInt(ev.layerY * 100 / zoom);
-		ws.send("mousemove " + _mx + " " + _my + k);
+function mousemove(event) {
+	let k = keys(event);
+	if(monitor != null && event.ctrlKey) {
+		ws.send("mousemove " + mouseevent(event) + k);
 	}
-	ev.preventDefault();
-	ev.stopPropagation();
+	event.preventDefault();
+	event.stopPropagation();
 	return false;
 } 
-function mousedown(ev) {
+function mousedown(event) {
 	E('body').focus();
-	let k = keys(ev);
+	let k = keys(event);
 	if(monitor != null) {
-		_mx = parseInt(ev.layerX * 100 / zoom);
-		_my = parseInt(ev.layerY * 100 / zoom);
-		ws.send("mousedown " + _mx + " " + _my + " " + ev.button + k);
+		ws.send("mousedown " + mouseevent(event) + " " + event.button + k);
 	}
-	ev.preventDefault();
-	ev.stopPropagation();
+	event.preventDefault();
+	event.stopPropagation();
 	return false;
-} 
-function mouseup(ev) {
-	let k = keys(ev);
+}
+function mouseup(event) {
+	let k = keys(event);
 	if(monitor != null) {
-		_mx = parseInt(ev.layerX * 100 / zoom);
-		_my = parseInt(ev.layerY * 100 / zoom);
-		ws.send("mouseup " + _mx + " " + _my + " " + ev.button + k);
+		ws.send("mouseup " + mouseevent(event) + " " + event.button + k);
 	}
-	ev.preventDefault();
-	ev.stopPropagation();
+	event.preventDefault();
+	event.stopPropagation();
 	return false;
-} 
+}
+function dblclick(event) {
+	let k = keys(event);
+	if(monitor != null) {
+		ws.send("dblclick " + mouseevent(event) + " " + event.button + k);
+	}
+	event.preventDefault();
+	event.stopPropagation();
+	return false;
+}
 
-var mouse_x = 0, mouse_y = 0;
+var mouse_x = 0;
+var mouse_y = 0;
 function mouse(o) {
 	mouse_x = parseInt(o[1]);
 	mouse_y = parseInt(o[2]);
@@ -202,14 +215,14 @@ function _mouse() {
 
 var redraw_time = null;
 var redraw_src = null;
-function drawimage() {
+function redraw_image() {
 	const img = new Image();
-	img.onload = (ev) => {
-		let w = ev.target.width;
-		let h = ev.target.height;
+	img.onload = (event) => {
+		let w = event.target.width;
+		let h = event.target.height;
 		let ww = w * zoom / 100;
 		let hh = h * zoom / 100;
-		ctx.drawImage(ev.target, 0, 0, w, h, 0, 0, ww, hh);
+		ctx.drawImage(event.target, 0, 0, w, h, 0, 0, ww, hh);
 		redraw_time = null;
 	};
 	img.src = redraw_src;
@@ -221,11 +234,12 @@ function redraw() {
 function _redraw() {
 	if(redraw_src == null) return;
 	if(redraw_time == null) {
-		redraw_time = setTimeout(drawimage, 1);
+		redraw_time = setTimeout(redraw_image, 1);
 	}
 }
 
-var screen_w = 800, screen_h = 640;
+var screen_w = 800;
+var screen_h = 640;
 function screen(o) {
 	screen_w = parseInt(o[1]);
 	screen_h = parseInt(o[2]);
@@ -331,11 +345,11 @@ function hidelist(htime) {
 	}, htime);
 }
 
-function keys(ev) {
+function keys(event) {
 	let k = "";
-	if(_alt > 0 || ev.altKey) k += " alt";
-	if(_ctrl > 0 || ev.ctrlKey) k += " ctrl";
-	if(_shift > 0 || ev.shiftKey) k += " shift";
+	if(_alt > 0 || event.altKey) k += " alt";
+	if(_ctrl > 0 || event.ctrlKey) k += " ctrl";
+	if(_shift > 0 || event.shiftKey) k += " shift";
 	return k;
 }
 

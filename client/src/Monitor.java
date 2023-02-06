@@ -5,6 +5,7 @@ import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.StringSelection;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 
@@ -60,45 +61,52 @@ public class Monitor {
 		return name;
 	}
 
-	public boolean diff(BufferedImage img) {
+	public BufferedImage diff(BufferedImage img) {
 		int w = size.width;
 		int h = size.height;
-		for(int yi = 0; yi < h; yi++) {
-			for(int xi = 0; xi < w; xi++) {
-				if(pre.getRGB(xi, yi) != img.getRGB(xi, yi)) {
-					synchronized (pre) {
-				    	Graphics g = pre.getGraphics();
-				    	g.drawImage(img, 0, 0, w, h, 0, 0, w, h, null);
-				   		g.dispose();
+		boolean same = true;
+		synchronized (pre) {
+			for(int yi = 0; yi < h; yi++) {
+				for(int xi = 0; xi < w; xi++) {
+					if(pre.getRGB(xi, yi) != img.getRGB(xi, yi)) {
+						same = false;
+					} else {
+						img.setRGB(xi, yi, 0);
 					}
-					return false;
 				}
 			}
 		}
-		return true;
+		if( ! same) {
+			synchronized (pre) {
+		    	Graphics g = pre.getGraphics();
+		    	g.drawImage(img, 0, 0, w, h, 0, 0, w, h, null);
+		   		g.dispose();
+			}
+			return img;
+		}
+		return null;
 	}
 
 	public byte[] buffer() {
 		synchronized (pre) {
-			try {
-				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				ImageIO.write(pre, "PNG", baos);
-				byte[] buf = baos.toByteArray();
-				baos.close();
-				return buf;
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			return buffer(pre);
+		}
+	}
+	public byte[] buffer(BufferedImage img) {
+		try {
+			ByteArrayOutputStream baos = new ByteArrayOutputStream();
+			ImageIO.write(img, "PNG", baos);
+			byte[] buf = baos.toByteArray();
+			baos.close();
+			return buf;
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 		return new byte[0];
 	}
 
 	public BufferedImage image() {
-		BufferedImage ii = null;
-		synchronized (pre) {
-			ii = pre;
-		}
-		return ii;
+		return pre;
 	}
 
 	public void image(BufferedImage img) {
@@ -109,5 +117,29 @@ public class Monitor {
 	    	g.drawImage(img, 0, 0, w, h, 0, 0, w, h, null);
 	   		g.dispose();
 		}
+	}
+
+	public static boolean noshift(int code) {
+		if(code == 226) return true;
+		return false;
+	}
+	public static int keycode(int code, boolean shift) {
+		if(code == 13) return KeyEvent.VK_ENTER;
+		if(code == 186) return KeyEvent.VK_COLON;
+		if(code == 187) return KeyEvent.VK_SEMICOLON;
+		if(code == 188) return KeyEvent.VK_COMMA;
+		if(code == 189) return KeyEvent.VK_MINUS;
+		if(code == 190) return KeyEvent.VK_PERIOD;
+		if(code == 191) return KeyEvent.VK_SLASH;
+		if(code == 192) return KeyEvent.VK_AT;
+		if(code == 219) return KeyEvent.VK_OPEN_BRACKET;
+		if(code == 220) return KeyEvent.VK_BACK_SLASH;
+		if(code == 221) return KeyEvent.VK_CLOSE_BRACKET;
+		if(code == 222) return KeyEvent.VK_CIRCUMFLEX;
+		if(code == 226) {
+			if(shift) return KeyEvent.VK_UNDERSCORE;
+			return KeyEvent.VK_BACK_SLASH;
+		}
+		return code;
 	}
 }

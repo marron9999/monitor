@@ -23,9 +23,9 @@
 </div>
 <div id="show" onclick="showlist()">◀</div>
 <div id="hide" onclick="hidelist(1)" style="display:none;">▶</div>
-<div id="body" onclick="_focus()">
+<div id="body" onclick="bodyfocus()">
 <canvas id="canvas" contenteditable="true"
-onfocus="rfocus()" onblur="rblur()"></canvas>
+onfocus="canvasfocus()" onblur="canvasblur()"></canvas>
 <div id="keys" ><span id="shift" onclick="shift(2)">Shift</span>
 <span id="alt" onclick="alt(2)">Alt</span>
 <span id="ctrl" onclick="ctrl(2)">Ctrl</span></div>
