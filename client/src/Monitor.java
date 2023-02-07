@@ -46,11 +46,18 @@ public class Monitor {
 		this.size = size;
 		if(name != null)
 			this.name = name;
-		pre = new BufferedImage(size.width,  size.height,  BufferedImage.TYPE_INT_ARGB);
-    	Graphics g = pre.getGraphics();
+		pre = new_image();
+	}
+
+	public BufferedImage new_image() {
+		BufferedImage img = new BufferedImage(
+				size.width,  size.height,
+				BufferedImage.TYPE_INT_ARGB);
+    	Graphics g = img.getGraphics();
     	g.setColor(Color.WHITE);
     	g.fillRect(0, 0, size.width, size.height);
    		g.dispose();
+   		return img;
 	}
 
 	public Dimension size() {
@@ -60,15 +67,20 @@ public class Monitor {
 	public String name() {
 		return name;
 	}
+	public void name(String name) {
+		this.name = name;
+	}
 
-	public BufferedImage diff(BufferedImage img) {
+	public BufferedImage diff_image(BufferedImage img) {
 		int w = size.width;
 		int h = size.height;
 		boolean same = true;
 		synchronized (pre) {
 			for(int yi = 0; yi < h; yi++) {
 				for(int xi = 0; xi < w; xi++) {
-					if(pre.getRGB(xi, yi) != img.getRGB(xi, yi)) {
+					int c = img.getRGB(xi, yi);
+					if(pre.getRGB(xi, yi) != c) {
+						pre.setRGB(xi, yi, c);
 						same = false;
 					} else {
 						img.setRGB(xi, yi, 0);
@@ -77,11 +89,6 @@ public class Monitor {
 			}
 		}
 		if( ! same) {
-			synchronized (pre) {
-		    	Graphics g = pre.getGraphics();
-		    	g.drawImage(img, 0, 0, w, h, 0, 0, w, h, null);
-		   		g.dispose();
-			}
 			return img;
 		}
 		return null;
@@ -119,10 +126,6 @@ public class Monitor {
 		}
 	}
 
-	public static boolean noshift(int code) {
-		if(code == 226) return true;
-		return false;
-	}
 	public static int keycode(int code, boolean shift) {
 		if(code == 13) return KeyEvent.VK_ENTER;
 		if(code == 186) return KeyEvent.VK_COLON;

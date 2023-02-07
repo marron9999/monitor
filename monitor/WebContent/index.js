@@ -1,5 +1,6 @@
 var ctx;
 var monitor = null;
+var monitor_id = null;
 var id = "";
 var ys = {};
 var host;
@@ -115,16 +116,18 @@ function send_in() {
 } 
 
 function keydown(event) {
-	let k = keys(event);
-	if(monitor != null && ( ! event.repeat)) {
-		ws.send("keydown " + event.keyCode + k);
-		if(_ctrl > 1) ctrl(0);
-		if(_shift > 1) shift(0);
-		if(_alt > 1) alt(0);
+	if( ! event.repeat) {
+		let k = keys(event);
+		if(monitor != null) {
+			ws.send("keydown " + event.keyCode + k);
+			if(_ctrl > 1) ctrl(0);
+			if(_shift > 1) shift(0);
+			if(_alt > 1) alt(0);
+		}
+		if(event.keyCode == 17) ctrl(1);
+		else if(event.keyCode == 16) shift(1);
+		else if(event.keyCode == 18) alt(1);
 	}
-	if(event.keyCode == 17) ctrl(1);
-	else if(event.keyCode == 16) shift(1);
-	else if(event.keyCode == 18) alt(1);
 	event.preventDefault();
 	event.stopPropagation();
 	return false;
@@ -220,15 +223,15 @@ function redraw_image() {
 	img.onload = (event) => {
 		let w = event.target.width;
 		let h = event.target.height;
-		let ww = w * zoom / 100;
-		let hh = h * zoom / 100;
+		let ww = parseInt(w * zoom / 100);
+		let hh = parseInt(h * zoom / 100);
 		ctx.drawImage(event.target, 0, 0, w, h, 0, 0, ww, hh);
 		redraw_time = null;
 	};
 	img.src = redraw_src;
 }
 function redraw() {
-	redraw_src = "http://" + host + ":" + port + "/monitor/api?id=" + id;
+	redraw_src = "http://" + host + ":" + port + "/monitor/api?id=" + monitor_id;
 	_redraw()
 }	
 function _redraw() {
@@ -250,8 +253,8 @@ function screen(o) {
 }
 function _screen() {
 	let c = E('canvas');
-	let w = screen_w * zoom / 100;
-	let h = screen_h * zoom / 100;
+	let w = parseInt(screen_w * zoom / 100);
+	let h = parseInt(screen_h * zoom / 100);
 	c.width = w;
 	c.height = h;
 	ctx = c.getContext("2d");
@@ -266,19 +269,25 @@ function clients(o) {
 	if(o[1] == "[") {
 		clients_list = "";
 		clients_eq = false;
+		clients_no = 0;
 		return;
 	}
 	if(o[1] == "]") {
 		E("list").innerHTML = clients_list;
 		if( ! clients_eq) {
 			document.title = "Disconnect";
+			monitor = null;
+			monitor_id = null;
 		}
 		return;
 	}
 	clients_no++;
 	if(o.length > 2) o[1] += " " + o[2];
 	clients_list += "<div class=s onclick='select(this)' id='h" + clients_no + "'";
-	if(o[1] == monitor) {
+	let id = o[1].split(":")[0];
+	if(id == monitor_id) {
+		monitor = o[1];
+		document.title = monitor;
 		clients_eq = true;
 		clients_list += " class='s'><img src='monitor.png' id='ih" + clients_no + "'>";
 	} else {
@@ -288,12 +297,14 @@ function clients(o) {
 }
 
 function select(e) {
-	let h = 0;
-	if(monitor == E('n' + e.id).innerHTML) {
+	let h = E('n' + e.id);
+	let id = h.innerHTML.split(":")[0];
+	if(monitor_id == id) {
 		h = E('i' + e.id);
 		h.src = "none.png";
 		h.className = "";
 		monitor = null;
+		monitor_id = null;
 		clients_eq = false;
 		document.title = "Disconnect";
 		ws.send("view");
@@ -309,10 +320,10 @@ function select(e) {
 	h = E('i' + e.id);
 	h.src = "monitor.png";
 	h.className = "s";
+	monitor_id = id;
 	monitor = E('n' + e.id).innerHTML;
 	document.title = monitor;
-	id = monitor.split(":")[0];
-	ws.send("view " + id);
+	ws.send("view " + monitor_id);
 	h = E('cursor');
 	h.style.display = "inline-block";
 	hidelist(1);

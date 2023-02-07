@@ -90,22 +90,32 @@ public class Main implements WebSocket.Listener {
 			Monitor.sleep(500);
 		}
 
-		int w = rect.width;
-		int h = rect.height;
-		String msg = "screen " + w + " " + h + " " + monitor.name();
-		System.out.println(msg);
-		ws.sendText(msg, true);
-		
+		String message = "screen " + rect.width + " " + rect.height;
+		System.out.println(message);
+		ws.sendText(message, true);
+
+		message = "name " + monitor.name();
+		System.out.println(message);
+		ws.sendText(message, true);
+
+		message = "sleep " + sleep;
+		System.out.println(message);
+
+		message = "verbose " + verbose;
+		System.out.println(message);
+
 		while(id == null) {
 			Monitor.sleep(500);
 		}
 
-		BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
+		BufferedImage img = monitor.new_image();
 		while(ws != null) {
 	    	Graphics g = img.getGraphics();
-	    	g.drawImage(robot.createScreenCapture(rect), 0, 0, w, h, 0, 0, w, h, null);
+	    	g.drawImage(robot.createScreenCapture(rect),
+	    			0, 0, rect.width, rect.height,
+	    			0, 0, rect.width, rect.height, null);
 	   		g.dispose();
-	   		BufferedImage diff = monitor.diff(img);
+	   		BufferedImage diff = monitor.diff_image(img);
 			if(diff != null) {
 				try {
 					post(monitor.buffer(diff));
@@ -115,7 +125,7 @@ public class Main implements WebSocket.Listener {
 			}
 
 			Point p = MouseInfo.getPointerInfo().getLocation();
-			if(p.x != mouse_x || p.y != mouse_x) {
+			if(p.x != mouse_x || p.y != mouse_y) {
 				mouse_x = p.x;
 				mouse_y = p.y;
 				if(ws != null) {
@@ -176,15 +186,38 @@ public class Main implements WebSocket.Listener {
 		boolean shift = (message.indexOf(" shift") >= 0)? true : false; 
 
 		if(ope[0].trim().equalsIgnoreCase("string")) {
-			String s = message;
-			String clip = Monitor.clipboard();
-			Monitor.clipboard(s.substring(ope[0].length()+1).trim());
-			robot.keyPress(KeyEvent.VK_CONTROL);
-			robot.keyPress(KeyEvent.VK_V);
-			robot.keyRelease(KeyEvent.VK_V);
-			robot.keyRelease(KeyEvent.VK_CONTROL);
-			Monitor.sleep(500);
-			Monitor.clipboard(clip);
+			if(ope[1].equalsIgnoreCase("@verbose")) {
+				try {
+					verbose = Boolean.parseBoolean(ope[2]);
+					message = "verbose " + verbose;
+					System.out.println(message);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return true;
+			}
+			if(ope[1].equalsIgnoreCase("@sleep")) {
+				try {
+					sleep = Integer.parseInt(ope[2]);
+					message = "sleep " + sleep;
+					System.out.println(message);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return true;
+			}
+			if(ope[1].equalsIgnoreCase("@name")) {
+				try {
+					monitor.name(ope[2]);
+					message = "name " + monitor.name();
+					System.out.println(message);
+					ws.sendText(message, true);
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				return true;
+			}
+			paste(message.substring(ope[0].length()+1).trim());
 			return true;
 		}
 
@@ -194,9 +227,11 @@ public class Main implements WebSocket.Listener {
 				int _key = Integer.parseInt(ope[1].trim()); 
 				int vkey = Monitor.keycode(_key, shift);
 				try {
-					if(shift && Monitor.noshift(_key))
-						robot.keyRelease(KeyEvent.VK_SHIFT);
-					robot.keyPress(vkey);
+					if(vkey == KeyEvent.VK_UNDERSCORE) {
+						paste("_");
+					} else {
+						robot.keyPress(vkey);
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 					rc = false;
@@ -214,7 +249,11 @@ public class Main implements WebSocket.Listener {
 				int _key = Integer.parseInt(ope[1].trim()); 
 				int vkey = Monitor.keycode(_key, shift);
 				try {
-					robot.keyRelease(vkey);
+					if(vkey == KeyEvent.VK_UNDERSCORE) {
+						// NONE
+					} else {
+						robot.keyRelease(vkey);
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
 					rc = false;
@@ -323,10 +362,21 @@ public class Main implements WebSocket.Listener {
 			id = ope[1].trim();
 			return true;
 		}
-		
+
 		return false;
 	}
 
+	private void paste(String text) {
+		String clip = Monitor.clipboard();
+		Monitor.clipboard(text);
+		robot.keyPress(KeyEvent.VK_CONTROL);
+		robot.keyPress(KeyEvent.VK_V);
+		robot.keyRelease(KeyEvent.VK_V);
+		robot.keyRelease(KeyEvent.VK_CONTROL);
+		Monitor.sleep(100);
+		Monitor.clipboard(clip);
+	}
+	
 	private boolean mouse(String[] ope) {
 		try {
 			//System.out.println(String.join(" ", ope));

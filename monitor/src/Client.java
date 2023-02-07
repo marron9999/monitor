@@ -62,17 +62,11 @@ public class Client {
 		if(ope[0].equalsIgnoreCase("screen")) {
 			int w = Integer.parseInt(ope[1]);
 			int h = Integer.parseInt(ope[2]);
-			String n = (ope.length > 3)? ope[3] : null;
+			String n = (ope.length > 3)? ope[3] : "" + session.getId();
 			synchronized (this) {
 				monitor = new Monitor(new Dimension(w, h), n);
 			}
-			try {
-				if(session.isOpen())
-					session.getBasicRemote().sendText("id " + session.getId());
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-
+			sendText("id " + session.getId());
 			ws.browser_sendClients();
 			return;
 		}
@@ -80,6 +74,14 @@ public class Client {
 		if(ope[0].equalsIgnoreCase("mouse")) {
 			String t = String.join(" ", ope);
 			ws.monitor_sendText(session.getId(), t);
+			return;
+		}
+
+		if(ope[0].equalsIgnoreCase("name")) {
+			synchronized (this) {
+				monitor.name(ope[1]);
+			}
+			ws.browser_sendClients();
 			return;
 		}
 	}
