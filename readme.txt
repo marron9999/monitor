@@ -45,21 +45,21 @@
 準備 3)　リモート先(PC)上にJavaアプリ:clientを配置します。
 準備 4)　Javaコマンド(Java 11以上)でclientを起動します。
 
-	java -jar client.jar
+	java -cp client.jar;javasysmon.jar Main
 	
-	デフォルトのWebサーバー（192.168.1.1276:8080）以外を
+	デフォルトのWebサーバー（192.168.1.127:8080）以外を
 	利用する場合は 第1引数に FQDN名/IPアドレス、
 	利用ポートが8080以外は「:xxxx」を指定してください。
 	
-	java -jar client.jar myserver1
-	java -jar client.jar myserver1:8080
+	java -cp client.jar;javasysmon.jar Main myserver1
+	java -cpr client.jar;javasysmon.jar Main myserver1:8080
 
-	java -jar client.jar myserver2:80
+	java -cp client.jar;javasysmon.jar Main myserver2:80
 	
 	ブラウザの一覧に表示される名前はCOMPUTERNAMEとなります。
 	特別な名前を表示したい場合は第2引数に指定してください。　　　   　　　
 
-	java -jar client.jar myserver1 my-computer
+	java -cp client.jar;javasysmon.jar Main myserver1 my-computer
 
 ■ 参考　：　使った技術要素
 
