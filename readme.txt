@@ -97,6 +97,9 @@ import java.util.concurrent.CompletionStage;
 
 import javax.imageio.ImageIO;
 
+javasysmon
+    https://github.com/jezhumble/javasysmon
+
 【【【 monitor側 : 500行くらい 】】】
 
 import java.awt.Dimension;
