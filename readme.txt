@@ -52,7 +52,7 @@
 	利用ポートが8080以外は「:xxxx」を指定してください。
 	
 	java -cp client.jar;javasysmon.jar Main myserver1
-	java -cpr client.jar;javasysmon.jar Main myserver1:8080
+	java -cp client.jar;javasysmon.jar Main myserver1:8080
 
 	java -cp client.jar;javasysmon.jar Main myserver2:80
 	
