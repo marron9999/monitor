@@ -23,6 +23,7 @@ public class Main implements WebSocket.Listener {
 	private WebSocket ws;
 	private Robot robot;
 	private Monitor monitor = null;
+	private SysMon sysmon = null;
 	private String site = "ws://192.168.1.127:8080/monitor/ws";
 	private String id = null;
 	private int mouse_x = -1, mouse_y = -1;
@@ -58,6 +59,7 @@ public class Main implements WebSocket.Listener {
 
 	public void run(String[] args) throws Exception {
 		robot = new Robot();
+		sysmon = new SysMon();
 		monitor = new Monitor(Monitor.toolkit.getScreenSize(), null);
 		int i=0;
 		while(i < args.length) {
@@ -130,6 +132,25 @@ public class Main implements WebSocket.Listener {
 				mouse_y = p.y;
 				if(ws != null) {
 					ws.sendText("mouse " + mouse_x + " " + mouse_y, true);
+				}
+			}
+
+			String sm = sysmon.diff_cpu();
+			if(sm != null) {
+				if(ws != null) {
+					ws.sendText("sysmon " + sm, true);
+				}
+			}
+			sm = sysmon.diff_mem();
+			if(sm != null) {
+				if(ws != null) {
+					ws.sendText("sysmon " + sm, true);
+				}
+			}
+			sm = sysmon.diff_drv();
+			if(sm != null) {
+				if(ws != null) {
+					ws.sendText("sysmon " + sm, true);
 				}
 			}
 
@@ -298,22 +319,22 @@ public class Main implements WebSocket.Listener {
 			if(ope[3].equals("0")) { 
 				if(mouse(ope)) {
 					robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
-					if( ! ctrl)
-						robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+					//if( ! ctrl)
+					//	robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
 					return true;
 				}
 			} else if(ope[3].equals("1")) { 
 				if(mouse(ope)) {
 					robot.mousePress(InputEvent.BUTTON2_DOWN_MASK);
-					if( ! ctrl)
-						robot.mouseRelease(InputEvent.BUTTON2_DOWN_MASK);
+					//if( ! ctrl)
+					//	robot.mouseRelease(InputEvent.BUTTON2_DOWN_MASK);
 					return true;
 				}
 			} else if(ope[3].equals("2")) {
 				if(mouse(ope)) {
 					robot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
-					if( ! ctrl)
-						robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
+					//if( ! ctrl)
+					//	robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
 					return true;
 				}
 			}
@@ -321,7 +342,8 @@ public class Main implements WebSocket.Listener {
 		}
 		
 		if(ope[0].trim().equalsIgnoreCase("mouseup")) {
-			if(ctrl) {
+			//if(ctrl) 
+			{
 				mouse(ope);
 				if(ope[3].equals("0")) { 
 					robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
@@ -358,8 +380,46 @@ public class Main implements WebSocket.Listener {
 		}
 
 		if(ope[0].trim().equalsIgnoreCase("id")) {
-			System.out.println(message);
+			if( ! verbose)
+				System.out.println(message);
 			id = ope[1].trim();
+			return true;
+		}
+
+		if(ope[0].trim().equalsIgnoreCase("sysmon")) {
+			String rc = sysmon.curr_cpu();
+			if(rc != null) {
+				ws.sendText("sysmon " + rc, true);
+			}
+			rc = sysmon.curr_mem();
+			if(rc != null) {
+				ws.sendText("sysmon " + rc, true);
+			}
+			rc = sysmon.curr_drv();
+			if(rc != null) {
+				ws.sendText("sysmon " + rc, true);
+			}
+			return true;
+		}
+		if(ope[0].trim().equalsIgnoreCase("cpu")) {
+			String rc = sysmon.getCpu();
+			if(rc != null) {
+				ws.sendText("cpu " + rc, true);
+			}
+			return true;
+		}
+		if(ope[0].trim().equalsIgnoreCase("mem")) {
+			String rc = sysmon.getMem();
+			if(rc != null) {
+				ws.sendText("mem " + rc, true);
+			}
+			return true;
+		}
+		if(ope[0].trim().equalsIgnoreCase("drv")) {
+			String rc = sysmon.getDrv();
+			if(rc != null) {
+				ws.sendText("drv " + rc, true);
+			}
 			return true;
 		}
 

@@ -20,17 +20,21 @@
 <option value=125>125%</option>
 <option value=150>150%</option>
 </select>
+<span id=sysmon><span onclick="showinfo(0)">CPU<br><span id=cpu>0%</span></span
+>&nbsp;<span onclick="showinfo(1)">MEM<br><span id=mem>0%</span></span
+>&nbsp;<span onclick="showinfo(2)">DRV<br><span id=drv>0%</span></span></span>
 </div>
 <div id="show" onclick="showlist()">◀</div>
 <div id="hide" onclick="hidelist(1)" style="display:none;">▶</div>
-<div id="body" onclick="bodyfocus()">
-<canvas id="canvas" contenteditable="true"
-onfocus="canvasfocus()" onblur="canvasblur()"></canvas>
-<div id="keys" ><span id="shift" onclick="shift(2)">Shift</span>
+<div id="body">
+<canvas id="canvas"></canvas>
+<div id="keys"><span id="shift" onclick="shift(2)">Shift</span>
 <span id="alt" onclick="alt(2)">Alt</span>
 <span id="ctrl" onclick="ctrl(2)">Ctrl</span></div>
 <div id="cursor" style="display:none;"></div>
+<div id="info"></div>
 </div>
+<div id="body2" onclick="bodyfocus()"></div>
 <div onmouseleave='hidelist(1000)' id="lists">
 <div><img id=load src="load.png" onclick="load()"></div>
 <div id="list"></div></div>

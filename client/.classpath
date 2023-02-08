@@ -6,6 +6,6 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="src" path="manifest"/>
+	<classpathentry kind="lib" path="javasysmon.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

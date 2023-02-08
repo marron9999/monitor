@@ -10,14 +10,26 @@ body {
 
 #body {
 	position: absolute;
-	top: 25px;
+	top: 27px;
 	left:0px;
 	display: inline-block;
 	padding: 0 0;
 	margin: 0 0;
-	height: calc(100% - 25px);
+	height: calc(100% - 27px);
 	width: calc(100%);
 	overflow: auto;
+}
+#body2 {
+	position: absolute;
+	top: 27px;
+	left:0px;
+	display: inline-block;
+	padding: 0 0;
+	margin: 0 0;
+	height: calc(100% - 27px);
+	width: calc(100%);
+	z-index: 6;
+	background: transparent;
 }
 #canvas {
 	position: absolute;
@@ -42,10 +54,10 @@ body {
 #lists {
 	position: absolute;
 	padding: 5px 5px;
-	top: 25px;
+	top: 27px;
 	right:0px;
-	z-index: 2;
-	height: calc(100% - 36px);
+	z-index: 9;
+	height: calc(100% - 38px);
 	width: 200px;
 	background: white;
 	border-top: 1px solid #ccc;
@@ -95,14 +107,14 @@ body {
 	left: 0;
 	display: inline-block;
 	width: calc(100% - 4px);
-	height: 22px;
+	height: 24px;
 	white-space: nowrap;
     border-bottom: 1px solid #ccc;
 }
 #in {
 	border: 1px solid gray;
 	margin-left: 2px;
-	width: calc(100% - 150px);
+	width: calc(100% - 240px);
 }
 #send {
 	display: inline-block;
@@ -143,10 +155,38 @@ body {
 	display: inline-block;
 	top: 3px;
 	left:3px;
-	z-index: 1;
+	z-index: 8;
 }
+#info {
+	display: none;
+	position: absolute;
+	display: inline-block;
+	top: 5px;
+	left:0px;
+	z-index: 7;
+	color: black;
+	padding-right: 2px;
+	text-align: right;
+}
+#info > span {
+	display: inline-block;
+	font-size: 14px;
+	text-align: right;
+	background: #fffd;
+	padding: 2px 4px;
+	white-space: nowrap;
+	text-shadow:
+		-1px -1px 1px white,
+		1px -1px 1px white,
+		-1px 1px 1px white,
+		1px 1px 1px white,
+		-1px 0px 1px white,
+		1px 0px 1px white,
+		0px 1px 1px white,
+		0px -1px 1px white;
+}
+
 #ctrl, #alt, #shift {
-	font-size: 9px;
 	position: absolute;
 	display: inline-block;
 	border: 1px solid #aaa;
@@ -166,7 +206,7 @@ body {
 		1px 0px 1px white,
 		0px 1px 1px white,
 		0px -1px 1px white;
-	z-index: 3;
+	z-index: 9;
 }
 #ctrl.s1, #alt.s1, #shift.s1 {
 	border-color: blue;
@@ -179,3 +219,17 @@ body {
 #shift { left:70px;}
 #alt { left:36px;}
 #ctrl { left:2px;}
+
+#cpu, #mem, #drv {
+	width: 3em;
+	text-align: right;
+}
+#sysmon, #sysmon span {
+	font-size: 9px;
+	vertical-align: bottom;
+	display: inline-block;
+}
+#sysmon {
+	color:#ccc;
+}
+

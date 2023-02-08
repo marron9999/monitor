@@ -25,6 +25,10 @@ window.onload = function() {
 	ws["screen"] = screen;
 	ws["mouse"] = mouse;
 	ws["redraw"] = redraw;
+	ws["sysmon"] = sysmon;
+	ws["cpu"] = sysinfo;
+	ws["mem"] = sysinfo;
+	ws["drv"] = sysinfo;
 	ws.onopen = function() {
 		ws.send("browser");
 	};
@@ -33,7 +37,7 @@ window.onload = function() {
 		ws[o[0]](o);
 	}
 
-	let c = E('canvas');
+	let c = E('body2');
 	c.addEventListener('keydown', keydown);
 	c.addEventListener('keyup', keyup);
 	c.addEventListener('dblclick', dblclick);
@@ -44,12 +48,12 @@ window.onload = function() {
 		event.preventDefault();
 		event.stopPropagation();
 	});
-	c = E('body');
-	c.addEventListener('wheel', mousewheel);
+	c = E('keys');
 	c.addEventListener('contextmenu', function(event){
 		event.preventDefault();
 		event.stopPropagation();
 	});
+	c.addEventListener('wheel', mousewheel);
 	c = E('in');
 	c.addEventListener('keydown', function (event) {
 		if(event.keyCode == 13) {
@@ -65,26 +69,6 @@ window.onload = function() {
 		sel_zoom();
 	};
 };
-
-
-function canvasfocus() {
-	if(monitor != null) {
-		E('tool').className = "s2";
-		E('body').className = "s2";
-	} else {
-		E('tool').className = "";
-		E('body').className = "";
-	}
-}
-function canvasblur() {
-	if(monitor != null) {
-		E('tool').className = "s1";
-		E('body').className = "s1";
-	} else {
-		E('tool').className = "";
-		E('body').className = "";
-	}
-}
 
 var zoom = 0;
 function sel_zoom() {
@@ -147,6 +131,7 @@ function keyup(event) {
 
 var mouseevent_x = -1;
 var mouseevent_y = -1;
+var mouseevent_b = {'0':0, '1':0, '2':0};
 function mouseevent(event) {
 	mouseevent_x = parseInt(event.layerX * 100 / zoom);
 	mouseevent_y = parseInt(event.layerY * 100 / zoom);
@@ -165,17 +150,24 @@ function mousewheel(event) {
 } 
 function mousemove(event) {
 	let k = keys(event);
-	if(monitor != null && event.ctrlKey) {
-		ws.send("mousemove " + mouseevent(event) + k);
+	if(monitor != null) {
+		if(mouseevent_b['0'] > 0
+		|| mouseevent_b['1'] > 0
+		|| mouseevent_b['2'] > 0
+		|| event.ctrlKey) {
+			ws.send("mousemove " + mouseevent(event) + k);
+		}
 	}
 	event.preventDefault();
 	event.stopPropagation();
 	return false;
 } 
 function mousedown(event) {
+	console.log("mousedown " + event.button);
 	E('body').focus();
 	let k = keys(event);
 	if(monitor != null) {
+		mouseevent_b[event.button] = 1;
 		ws.send("mousedown " + mouseevent(event) + " " + event.button + k);
 	}
 	event.preventDefault();
@@ -183,8 +175,10 @@ function mousedown(event) {
 	return false;
 }
 function mouseup(event) {
+	console.log("mouseup " + event.button);
 	let k = keys(event);
 	if(monitor != null) {
+		mouseevent_b[event.button] = 0;
 		ws.send("mouseup " + mouseevent(event) + " " + event.button + k);
 	}
 	event.preventDefault();
@@ -192,8 +186,10 @@ function mouseup(event) {
 	return false;
 }
 function dblclick(event) {
+	console.log("dblclick " + event.button);
 	let k = keys(event);
 	if(monitor != null) {
+		mouseevent_b[event.button] = 0;
 		ws.send("dblclick " + mouseevent(event) + " " + event.button + k);
 	}
 	event.preventDefault();
@@ -258,7 +254,9 @@ function _screen() {
 	c.width = w;
 	c.height = h;
 	ctx = c.getContext("2d");
-	c = E('keys');
+	//c = E('keys');
+	//c.style.width = w + "px";
+	c = E('info');
 	c.style.width = w + "px";
 }
 
@@ -278,6 +276,9 @@ function clients(o) {
 			document.title = "Disconnect";
 			monitor = null;
 			monitor_id = null;
+			E('tool').className = "";
+			E('body').className = "";
+			E('sysmon').style.color = null;
 		}
 		return;
 	}
@@ -308,6 +309,9 @@ function select(e) {
 		clients_eq = false;
 		document.title = "Disconnect";
 		ws.send("view");
+		E('tool').className = "";
+		E('body').className = "";
+		E('sysmon').style.color = null;
 		return;
 	}
 	for(let i=1; i<=clients_no; i++) {
@@ -324,6 +328,13 @@ function select(e) {
 	monitor = E('n' + e.id).innerHTML;
 	document.title = monitor;
 	ws.send("view " + monitor_id);
+	setTimeout(function() {
+		ws.send("sysmon");
+	}, 100)
+	redraw();
+	E('tool').className = "s2";
+	E('body').className = "s2";
+	E('sysmon').style.color = "black";
 	h = E('cursor');
 	h.style.display = "inline-block";
 	hidelist(1);
@@ -405,3 +416,38 @@ function load() {
 		event.stopPropagation();
 	}	
 }
+
+function sysmon(o) {
+	E(o[1]).innerHTML = o[2];
+}
+function sysinfo(o) {
+	let t = "<span>" + o[0].toUpperCase();
+	for(let i=1; i<o.length; i++) {
+		t += " " + o[i];
+	}
+	t + "</span>";
+	E("info").innerHTML = t.replace(/\n/g, "<br>");
+}
+
+var hideinfo_time = null;
+function showinfo(m) {
+	if(m == 0) m = "cpu"; 
+	else if(m == 1) m = "mem"; 
+	else if(m == 2) m = "drv";
+	else m = null;
+	if(m != null) {
+		ws.send(m);
+		if(hideinfo_time != null) {
+			clearTimeout(hideinfo_time);
+			hideinfo_time = null;
+		}
+		E("info").style.display = "inline-block";
+		E("info").innerHTML  = "";
+	} 
+	hideinfo_time = setTimeout(function() {
+		hideinfo_time = null;
+		E("info").style.display = "none";
+		E("info").innerHTML = "";
+	}, 10000);
+}
+

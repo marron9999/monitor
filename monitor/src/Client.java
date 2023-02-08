@@ -77,6 +77,27 @@ public class Client {
 			return;
 		}
 
+		if(ope[0].equalsIgnoreCase("sysmon")) {
+			String t = String.join(" ", ope);
+			ws.monitor_sendText(session.getId(), t);
+			return;
+		}
+		if(ope[0].equalsIgnoreCase("cpu")) {
+			String t = String.join(" ", ope);
+			ws.monitor_sendText(session.getId(), t);
+			return;
+		}
+		if(ope[0].equalsIgnoreCase("mem")) {
+			String t = String.join(" ", ope);
+			ws.monitor_sendText(session.getId(), t);
+			return;
+		}
+		if(ope[0].equalsIgnoreCase("drv")) {
+			String t = String.join(" ", ope);
+			ws.monitor_sendText(session.getId(), t);
+			return;
+		}
+
 		if(ope[0].equalsIgnoreCase("name")) {
 			synchronized (this) {
 				monitor.name(ope[1]);

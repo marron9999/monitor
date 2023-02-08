@@ -37,6 +37,10 @@ public class Browser {
 		|| ope[0].equalsIgnoreCase("dblclick")
 		|| ope[0].equalsIgnoreCase("keydown")
 		|| ope[0].equalsIgnoreCase("keyup")
+		|| ope[0].equalsIgnoreCase("sysmon")
+		|| ope[0].equalsIgnoreCase("cpu")
+		|| ope[0].equalsIgnoreCase("mem")
+		|| ope[0].equalsIgnoreCase("drv")
 		) {
 			String id = null;
 			synchronized (this) {
