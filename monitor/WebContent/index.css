@@ -18,18 +18,7 @@ body {
 	height: calc(100% - 27px);
 	width: calc(100%);
 	overflow: auto;
-}
-#body2 {
-	position: absolute;
-	top: 27px;
-	left:0px;
-	display: inline-block;
-	padding: 0 0;
-	margin: 0 0;
-	height: calc(100% - 27px);
-	width: calc(100%);
-	z-index: 6;
-	background: transparent;
+	caret-color: transparent;
 }
 #canvas {
 	position: absolute;
@@ -160,20 +149,19 @@ body {
 #info {
 	display: none;
 	position: absolute;
-	display: inline-block;
+	display: none;
 	top: 5px;
-	left:0px;
+	right:5px;
 	z-index: 7;
 	color: black;
-	padding-right: 2px;
 	text-align: right;
+	background: #fffd;
+	padding: 5px 5px;
 }
 #info > span {
 	display: inline-block;
 	font-size: 14px;
 	text-align: right;
-	background: #fffd;
-	padding: 2px 4px;
 	white-space: nowrap;
 	text-shadow:
 		-1px -1px 1px white,

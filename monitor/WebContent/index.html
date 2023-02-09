@@ -26,15 +26,15 @@
 </div>
 <div id="show" onclick="showlist()">◀</div>
 <div id="hide" onclick="hidelist(1)" style="display:none;">▶</div>
-<div id="body">
+<div id="body" contenteditable=true onclick="bodyfocus()">
 <canvas id="canvas"></canvas>
+<!-- div id="canvas2" onclick="bodyfocus()" ></div-->
 <div id="keys"><span id="shift" onclick="shift(2)">Shift</span>
 <span id="alt" onclick="alt(2)">Alt</span>
 <span id="ctrl" onclick="ctrl(2)">Ctrl</span></div>
 <div id="cursor" style="display:none;"></div>
 <div id="info"></div>
 </div>
-<div id="body2" onclick="bodyfocus()"></div>
 <div onmouseleave='hidelist(1000)' id="lists">
 <div><img id=load src="load.png" onclick="load()"></div>
 <div id="list"></div></div>

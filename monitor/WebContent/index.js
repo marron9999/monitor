@@ -11,7 +11,7 @@ function E(id) {
 }
 
 function bodyfocus() {
-	let c = E('canvas');
+	let c = E('body');
 	c.focus();	
 }
 
@@ -37,13 +37,14 @@ window.onload = function() {
 		ws[o[0]](o);
 	}
 
-	let c = E('body2');
+	let c = E('body');
 	c.addEventListener('keydown', keydown);
 	c.addEventListener('keyup', keyup);
 	c.addEventListener('dblclick', dblclick);
 	c.addEventListener('mousedown', mousedown);
 	c.addEventListener('mousemove', mousemove);
 	c.addEventListener('mouseup', mouseup);
+	c.addEventListener('wheel', mousewheel);
 	c.addEventListener('contextmenu', function(event){
 		event.preventDefault();
 		event.stopPropagation();
@@ -53,7 +54,11 @@ window.onload = function() {
 		event.preventDefault();
 		event.stopPropagation();
 	});
-	c.addEventListener('wheel', mousewheel);
+//	c = E('body');
+//	c.addEventListener('contextmenu', function(event){
+//		event.preventDefault();
+//		event.stopPropagation();
+//	});
 	c = E('in');
 	c.addEventListener('keydown', function (event) {
 		if(event.keyCode == 13) {
@@ -100,7 +105,8 @@ function send_in() {
 } 
 
 function keydown(event) {
-	if( ! event.repeat) {
+	console.log("keydown " + event.keyCode);
+	if( ! event.keydown) {
 		let k = keys(event);
 		if(monitor != null) {
 			ws.send("keydown " + event.keyCode + k);
@@ -117,6 +123,7 @@ function keydown(event) {
 	return false;
 } 
 function keyup(event) {
+	console.log("keyup " + event.keyCode);
 	let k = keys(event);
 	if(monitor != null) {
 		ws.send("keyup " + event.keyCode + k);
@@ -138,6 +145,9 @@ function mouseevent(event) {
 	return mouseevent_x + " " + mouseevent_y;
 } 
 function mousewheel(event) {
+	if(event.target.id == "alt") return true;
+	if(event.target.id == "shift") return true;
+	if(event.target.id == "ctrl") return true;
 	let k = keys(event);
 	if(monitor != null) {
 		ws.send("mousewheel "
@@ -149,6 +159,9 @@ function mousewheel(event) {
 	return false;
 } 
 function mousemove(event) {
+	if(event.target.id == "alt") return true;
+	if(event.target.id == "shift") return true;
+	if(event.target.id == "ctrl") return true;
 	let k = keys(event);
 	if(monitor != null) {
 		if(mouseevent_b['0'] > 0
@@ -163,6 +176,9 @@ function mousemove(event) {
 	return false;
 } 
 function mousedown(event) {
+	if(event.target.id == "alt") return true;
+	if(event.target.id == "shift") return true;
+	if(event.target.id == "ctrl") return true;
 	console.log("mousedown " + event.button);
 	E('body').focus();
 	let k = keys(event);
@@ -175,17 +191,25 @@ function mousedown(event) {
 	return false;
 }
 function mouseup(event) {
+	if(event.target.id == "alt") return true;
+	if(event.target.id == "shift") return true;
+	if(event.target.id == "ctrl") return true;
 	console.log("mouseup " + event.button);
 	let k = keys(event);
 	if(monitor != null) {
 		mouseevent_b[event.button] = 0;
-		ws.send("mouseup " + mouseevent(event) + " " + event.button + k);
+		ws.send("mouseup "
+			+ mouseevent_x + " " + mouseevent_y
+			+ " " + event.button + k);
 	}
 	event.preventDefault();
 	event.stopPropagation();
 	return false;
 }
 function dblclick(event) {
+	if(event.target.id == "alt") return true;
+	if(event.target.id == "shift") return true;
+	if(event.target.id == "ctrl") return true;
 	console.log("dblclick " + event.button);
 	let k = keys(event);
 	if(monitor != null) {
@@ -256,8 +280,11 @@ function _screen() {
 	ctx = c.getContext("2d");
 	//c = E('keys');
 	//c.style.width = w + "px";
-	c = E('info');
-	c.style.width = w + "px";
+	c = E('body');
+	c.width = w;
+	c.height = h;
+	//c = E('info');
+	//c.style.width = w + "px";
 }
 
 var clients_list = "";
@@ -385,8 +412,9 @@ function alt(m) {
 	if(event != undefined) {
 		event.preventDefault();
 		event.stopPropagation();
-		E("canvas").focus();
+		E("body").focus();
 	}
+	return false;
 }
 function shift(m) {
 	if(m != 2) _shift = m;
@@ -395,8 +423,9 @@ function shift(m) {
 	if(event != undefined) {
 		event.preventDefault();
 		event.stopPropagation();
-		E("canvas").focus();
+		E("body").focus();
 	}
+	return false;
 }
 function ctrl(m) {
 	if(m != 2) _ctrl = m;
@@ -405,8 +434,9 @@ function ctrl(m) {
 	if(event != undefined) {
 		event.preventDefault();
 		event.stopPropagation();
-		E("canvas").focus();
+		E("body").focus();
 	}
+	return false;
 }
 
 function load() {
@@ -431,6 +461,7 @@ function sysinfo(o) {
 
 var hideinfo_time = null;
 function showinfo(m) {
+	if(monitor == null) return;
 	if(m == 0) m = "cpu"; 
 	else if(m == 1) m = "mem"; 
 	else if(m == 2) m = "drv";
