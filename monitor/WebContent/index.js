@@ -22,6 +22,7 @@ window.onload = function() {
 	|| port == "") port = "8080";
 	ws = new WebSocket("ws://" + host + ":" + port + "/monitor/ws");
 	ws["clients"] = clients;
+	ws["files"] = files;
 	ws["screen"] = screen;
 	ws["mouse"] = mouse;
 	ws["redraw"] = redraw;
@@ -74,6 +75,81 @@ window.onload = function() {
 		sel_zoom();
 	};
 };
+
+function dropHandler(event) {
+	if(monitor == null) {
+		return true;
+	}
+
+	if (event.dataTransfer.items) {
+		let items = event.dataTransfer.items;
+		for(let i=0; i<items.length; i++) {
+			let item = items[i];
+			if (item.kind === 'file') {
+				const file = item.getAsFile();
+				upload(file);
+			}
+		}
+	} else {
+		let items = event.dataTransfer.files;
+		for(let i=0; i<items.length; i++) {
+			const file = items[i];
+			upload(file);
+		}
+	}
+
+	event.preventDefault();
+	event.stopPropagation();
+	return false;
+}
+function dragOverHandler(event) {
+	if(monitor == null) {
+		return true;
+	}
+
+	event.preventDefault();
+	event.stopPropagation();
+	return false;
+}
+function upload(file) {
+	console.log("upload: " + file.name);
+	let name = file.name.replace(/\\/g, "/");
+	let e = name.lastIndexOf("/");
+	if(e >= 0) name = name.substr(e + 1);
+	const dataTransfer = new DataTransfer();
+	dataTransfer.items.add(file);
+	e = E("form_name");
+	e.value = name;
+	e = E("form_id");
+	e.value = monitor_id;
+	e = E("form_file");
+	e.files = dataTransfer.files;
+	e = E("form");
+	let fd = new FormData(e);
+	let xhr = new XMLHttpRequest();
+	xhr.onloadstart = function ( event ) {
+		let e = E("upld");
+		e.innerHTML = name + ": Uploading...";
+		e.style.display = "inline-block";
+	};
+	xhr.upload.onprogress = function ( event ) {
+		let x = parseInt( "" + (event.loaded * 100 / event.total));
+		let e = E("upld");
+		e.innerHTML = name + ": Uploading... " + x + "%";
+	};
+	xhr.onerror = function ( event ) {
+		let e = E("upld");
+		e.style.display = "none";
+	};
+	xhr.onloadend = function ( event ) {
+		let e = E("upld");
+		e.style.display = "none";
+	};
+	let url = "http://" + host + ":" + port + "/monitor/api2";
+	xhr.open("POST", url, true);
+	//xhr.setRequestHeader("Content-Type", "multipart/form-data");
+	xhr.send(fd);
+}
 
 var zoom = 0;
 function sel_zoom() {
@@ -287,6 +363,26 @@ function _screen() {
 	//c.style.width = w + "px";
 }
 
+var files_list = "";
+function files(o) {
+	if(o[2] == "[") {
+		files_list = "";
+		return;
+	}
+	if(o[2] == "]") {
+		E("f" + o[1]).innerHTML = files_list;
+		return;
+	}
+	files_list += "<div onclick='files_select(this)'>" + o[2] + "</div>";
+}
+
+function files_select(e) {
+	let id = e.parentElement.id.substring(1);
+	let url = "http://" + host + ":" + port + "/monitor/api?id=" + id
+			+ "&file=" + e.innerHTML;
+	open(url, e.innerHTML);
+}
+
 var clients_list = "";
 var clients_eq = false;
 var clients_no = 0;
@@ -311,7 +407,7 @@ function clients(o) {
 	}
 	clients_no++;
 	if(o.length > 2) o[1] += " " + o[2];
-	clients_list += "<div class=s onclick='select(this)' id='h" + clients_no + "'";
+	clients_list += "<div><div class=s onclick='select(this)' id='h" + clients_no + "'";
 	let id = o[1].split(":")[0];
 	if(id == monitor_id) {
 		monitor = o[1];
@@ -322,6 +418,7 @@ function clients(o) {
 		clients_list += "><img src='none.png' id='ih" + clients_no + "'>";
 	}
 	clients_list += "<span id='nh" + clients_no + "'>" + o[1] + "</span></div>";
+	clients_list += "<div class=f id='f" + id + "'></div></div>";
 }
 
 function select(e) {

@@ -3,6 +3,7 @@ import java.awt.Dimension;
 import jakarta.websocket.Session;
 
 public class Browser {
+	@SuppressWarnings("unused")
 	private WS ws;
 	private Session session;
 	private String monitor_id;
@@ -46,13 +47,13 @@ public class Browser {
 			synchronized (this) {
 				id = monitor_id;
 			}
-			ws.client_sendText(id, message);
+			WS.client_sendText(id, message);
 			return;
 		}
 
 		if(ope[0].equalsIgnoreCase("browser")) {
 			synchronized (this) {
-				ws.browser_sendClients();
+				WS.browser_sendClients();
 			}
 			return;
 		}
@@ -66,7 +67,7 @@ public class Browser {
 			}
 
 			try {
-				Dimension size = ws.client_size(ope[1]);
+				Dimension size = WS.client_size(ope[1]);
 				if(size != null) {
 					session.getBasicRemote().sendText("screen " + size.width + " " + size.height);
 					synchronized (this) {

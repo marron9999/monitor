@@ -26,17 +26,26 @@
 </div>
 <div id="show" onclick="showlist()">◀</div>
 <div id="hide" onclick="hidelist(1)" style="display:none;">▶</div>
-<div id="body" contenteditable=true onclick="bodyfocus()">
+<div id="body" contenteditable=true
+	onclick="bodyfocus()"
+	ondrop="dropHandler(event)"
+	ondragover="dragOverHandler(event)"
+	>
 <canvas id="canvas"></canvas>
-<!-- div id="canvas2" onclick="bodyfocus()" ></div-->
 <div id="keys"><span id="shift" onclick="shift(2)">Shift</span>
 <span id="alt" onclick="alt(2)">Alt</span>
 <span id="ctrl" onclick="ctrl(2)">Ctrl</span></div>
 <div id="cursor" style="display:none;"></div>
 <div id="info"></div>
+<div id="upld"></div>
 </div>
 <div onmouseleave='hidelist(1000)' id="lists">
 <div><img id=load src="load.png" onclick="load()"></div>
-<div id="list"></div></div>
+<div id="list"></div>
+<form id="form" name="form" method="post" enctype="multipart/form-data">
+<input id="form_name" name="form_name" type=text>
+<input id="form_id" name="form_id" type=text>
+<input id="form_file" name="form_file" type="file"></form>
+</div>
 </body>
 </html>

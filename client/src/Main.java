@@ -6,17 +6,25 @@ import java.awt.Robot;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.WebSocket;
 import java.net.http.WebSocket.Listener;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Main implements WebSocket.Listener {
 	private HttpClient client;
@@ -29,6 +37,8 @@ public class Main implements WebSocket.Listener {
 	private int mouse_x = -1, mouse_y = -1;
 	private boolean verbose = false;
 	private int sleep = 500;
+	private Frame frame;
+	private ExecutorService service = Executors.newCachedThreadPool();
 
 	public boolean parse(String opt) throws Exception {
 		opt = opt.replace("/", "-").toLowerCase();
@@ -58,6 +68,23 @@ public class Main implements WebSocket.Listener {
 	}
 
 	public void run(String[] args) throws Exception {
+		frame = new Frame() {
+			private static final long serialVersionUID = 1L;
+			@Override
+			public void drop(File file) {
+				upload(file);
+			}
+			@Override
+			public void dispose() {
+				frame = null;
+				super.dispose();
+				if(ws != null) {
+					ws.abort();
+					ws = null;
+				}
+			}
+
+		};
 		robot = new Robot();
 		sysmon = new SysMon();
 		monitor = new Monitor(Monitor.toolkit.getScreenSize(), null);
@@ -77,6 +104,9 @@ public class Main implements WebSocket.Listener {
 		}
 		if(monitor == null)
 			monitor = new Monitor(Monitor.toolkit.getScreenSize(), null);
+		frame.setTitle(monitor.name());
+		System.setOut(new PrintStream(frame.stream));
+		System.setErr(System.out);
 		System.out.println("Server: " + site);
 		URI uri = URI.create(site);
 		Rectangle rect = new Rectangle(monitor.size());		
@@ -112,18 +142,14 @@ public class Main implements WebSocket.Listener {
 
 		BufferedImage img = monitor.new_image();
 		while(ws != null) {
-	    	Graphics g = img.getGraphics();
-	    	g.drawImage(robot.createScreenCapture(rect),
-	    			0, 0, rect.width, rect.height,
-	    			0, 0, rect.width, rect.height, null);
-	   		g.dispose();
-	   		BufferedImage diff = monitor.diff_image(img);
+			Graphics g = img.getGraphics();
+			g.drawImage(robot.createScreenCapture(rect),
+					0, 0, rect.width, rect.height,
+					0, 0, rect.width, rect.height, null);
+			g.dispose();
+			BufferedImage diff = monitor.diff_image(img);
 			if(diff != null) {
-				try {
-					post(monitor.buffer(diff));
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				upload(diff);
 			}
 
 			Point p = MouseInfo.getPointerInfo().getLocation();
@@ -156,27 +182,135 @@ public class Main implements WebSocket.Listener {
 
 			Monitor.sleep(sleep);
 		}
+
+		if(frame != null)
+			frame.dispose();
+		System.exit(0);
 	}
-		
-	private void post(byte[] buf) throws Exception {
-		String s = site.replace("ws:", "http:").replace("/ws", "/api");
-        URL url = new URL(s + "?id=" + id);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setDoOutput(true);
-        conn.setRequestProperty("Content-Type", "image/PNG");
-        conn.setRequestProperty("Content-Length", Integer.toString(buf.length));
-        conn.connect();
-        OutputStream os = conn.getOutputStream();
-        DataOutputStream dos = new DataOutputStream(os);
-        dos.write(buf);
+	
+	private void upload(File file) {
+		service.execute(new Runnable() {
+			@Override
+			public void run() {
+				Thread.currentThread().setName("upload_file");
+				try {
+					String name = file.getAbsolutePath();
+					name = name.replace(":", "").replace("\\", "_").replace("/", "_");
+					name = monitor.name() + "_" + name;
+					FileInputStream fis = new FileInputStream(file);
+					ByteArrayOutputStream baos = new ByteArrayOutputStream();
+					byte[] buf = new byte[4096];
+					int len;
+					while((len = fis.read(buf)) >= 0) {
+						baos.write(buf, 0, len);
+					}
+					buf = baos.toByteArray();
+					baos.close();
+					fis.close();
+					if(post(name, buf) == 200) {
+						System.out.println("Upload: " + file.getAbsolutePath());
+					} else {
+						System.out.println("Fail: " + file.getAbsolutePath());
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				Thread.currentThread().setName("-");
+			}
+		});
+	}
+
+	private void upload(BufferedImage image) {
+		service.execute(new Runnable() {
+			@Override
+			public void run() {
+				Thread.currentThread().setName("upload_image");
+				try {
+					post(monitor.buffer(image));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				Thread.currentThread().setName("-");
+			}
+		});
+	}
+	
+	private void download(String iname , String oname) {
+		service.execute(new Runnable() {
+			@Override
+			public void run() {
+				Thread.currentThread().setName("download file");
+				try {
+					File file = get(iname, oname);
+					if(file != null) {
+						System.out.println("download: " + file.getName() + ", " + String.format("%,d", file.length()) + " bytes");
+					} else {
+						System.out.println("Fail: " + oname);
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				Thread.currentThread().setName("-");
+			}
+		});
+	}
+	
+	private int post(String file, byte[] buf) throws Exception {
+		String arg = "file=" + URLEncoder.encode(file, "utf-8");
+		return post(arg, "binary/octet-stream", buf);
+	}
+
+	private int post(byte[] buf) throws Exception {
+		return post(null, "image/PNG", buf);
+	}
+
+	private int post(String arg, String type, byte[] buf) throws Exception {
+		if(arg == null) arg = "";
+		if(arg.length() > 0) arg = "&" + arg;
+		String url = site.replace("ws:", "http:").replace("/ws", "/api");
+		url = url + "?id=" + id + arg;
+		HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+		conn.setDoOutput(true);
+		conn.setRequestProperty("Content-Type", type);
+		conn.setRequestProperty("Content-Length", Integer.toString(buf.length));
+		conn.connect();
+		OutputStream os = conn.getOutputStream();
+		DataOutputStream dos = new DataOutputStream(os);
+		dos.write(buf);
 		dos.close();
 		os.close();
 		InputStream is = conn.getInputStream();
-        is.read();
-        is.close();
-        conn.disconnect();
+		is.read();
+		is.close();
+		conn.disconnect();
+		return conn.getResponseCode();
 	}
-	
+
+	private File get(String ifile, String ofile) throws Exception {
+		File dir = new File(System.getenv("USERPROFILE"), "Downloads");
+		dir = new File(dir, ofile);
+		String url = site.replace("ws:", "http:").replace("/ws", "/api");
+		url = url + "?id=0&temp=" + ifile;
+		HttpURLConnection conn = (HttpURLConnection) new URL(url).openConnection();
+		conn.setRequestMethod("GET");
+		conn.connect();
+		FileOutputStream fos = new FileOutputStream(dir);
+		InputStream is = conn.getInputStream();
+		int len = 0;
+		long tlen = 0;
+		byte[] buf = new byte[4096];
+		while((len = is.read(buf)) >= 0) {
+			fos.write(buf, 0, len);
+			tlen += len;
+		}
+		is.close();
+		fos.close();
+		conn.disconnect();
+		if(tlen <= 0) 
+			dir.delete();
+		return dir;
+	}
+
 //	private void close() {
 //		try {
 //			CompletableFuture<WebSocket> end = ws.sendClose(WebSocket.NORMAL_CLOSURE, "Bye");
@@ -203,39 +337,44 @@ public class Main implements WebSocket.Listener {
 	public boolean onMessage(WebSocket webSocket, String message) {
 		String[] ope = message.split(" ");
 		boolean ctrl = (message.indexOf(" ctrl") >= 0)? true : false; 
+		@SuppressWarnings("unused")
 		boolean alt = (message.indexOf(" alt") >= 0)? true : false; 
 		boolean shift = (message.indexOf(" shift") >= 0)? true : false; 
 
 		if(ope[0].trim().equalsIgnoreCase("string")) {
 			if(ope[1].equalsIgnoreCase("@verbose")) {
+				message = "verbose " + verbose;
 				try {
 					verbose = Boolean.parseBoolean(ope[2]);
 					message = "verbose " + verbose;
-					System.out.println(message);
 				} catch (Exception e) {
-					e.printStackTrace();
+					//e.printStackTrace();
 				}
+				System.out.println(message);
 				return true;
 			}
 			if(ope[1].equalsIgnoreCase("@sleep")) {
+				message = "sleep " + sleep;
 				try {
 					sleep = Integer.parseInt(ope[2]);
 					message = "sleep " + sleep;
-					System.out.println(message);
 				} catch (Exception e) {
-					e.printStackTrace();
+					//e.printStackTrace();
 				}
+				System.out.println(message);
 				return true;
 			}
 			if(ope[1].equalsIgnoreCase("@name")) {
+				message = "name " + monitor.name();
 				try {
 					monitor.name(ope[2]);
 					message = "name " + monitor.name();
-					System.out.println(message);
 					ws.sendText(message, true);
+					frame.setTitle(id + ": " + monitor.name());
 				} catch (Exception e) {
-					e.printStackTrace();
+					//e.printStackTrace();
 				}
+				System.out.println(message);
 				return true;
 			}
 			paste(message.substring(ope[0].length()+1).trim());
@@ -383,6 +522,7 @@ public class Main implements WebSocket.Listener {
 			if( ! verbose)
 				System.out.println(message);
 			id = ope[1].trim();
+			frame.setTitle(id + ": " + monitor.name());
 			return true;
 		}
 
@@ -420,6 +560,11 @@ public class Main implements WebSocket.Listener {
 			if(rc != null) {
 				ws.sendText("drv " + rc, true);
 			}
+			return true;
+		}
+
+		if(ope[0].trim().equalsIgnoreCase("download")) {
+			download(ope[1], ope[2]);
 			return true;
 		}
 

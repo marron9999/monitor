@@ -1,5 +1,6 @@
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -22,23 +23,22 @@ public class WS {
 		}
 		return null;
 	}
+	public static void client_file(String id, File file) {
+		Client client = clients.get(id);
+		if(client != null) {
+			client.file(file);
+			browser_sendClients();
+		}
+	}
 	public static void client_image(String id, BufferedImage img) {
 		Client client = clients.get(id);
 		if(client != null) {
 			client.image(img);
-			for(String key : browsers.keySet()) {
-				Browser browser = browsers.get(key);
-				String vid = browser.monitorId();
-				if(vid != null
-				&& vid.equalsIgnoreCase(id)) {
-					browser.sendText("redraw");
-				}
-			}
-			Monitor.sleep(100);
+			monitor_sendText(id, "redraw");
 		}
 	}
 
-	public void client_sendText(String id, String message) {
+	public static void client_sendText(String id, String message) {
 		if(id == null) return;
 		Client client = null;
 		synchronized (clients) {
@@ -47,7 +47,7 @@ public class WS {
 		if(client != null)
 			client.sendText(message);
 	}
-	public Dimension client_size(String id) {
+	public static Dimension client_size(String id) {
 		if(id == null) return null;
 		Client client = null;
 		synchronized (clients) {
@@ -58,7 +58,7 @@ public class WS {
 		return null; 
 	}
 
-	public void monitor_sendText(String id, String message) {
+	public static void monitor_sendText(String id, String message) {
 		if(id == null) return;
 		Browser browser = null;
 		Set<String> keyset = browsers.keySet();
@@ -74,7 +74,7 @@ public class WS {
 			}
 		}
 	}
-	public void browser_sendText(String id, String message) {
+	public static void browser_sendText(String id, String message) {
 		if(id == null) return;
 		Browser browser = null;
 		synchronized (browsers) {
@@ -83,7 +83,7 @@ public class WS {
 		if(browser != null)
 			browser.sendText(message);
 	}
-	public String browser_monitorId(String id) {
+	public static String browser_monitorId(String id) {
 		if(id == null) return null;
 		Browser browser = null;
 		synchronized (browsers) {
@@ -151,28 +151,49 @@ public class WS {
 		}
 	}
 
-	public void browser_sendClients() {
+	public static void browser_sendClients() {
 		synchronized (browsers) {
-			Client client = null;
-			Browser browser = null;
-			Set<String> keyset = browsers.keySet();
-			for(String key : keyset) {
-				browser = browsers.get(key);
-				browser.sendText("clients [");
-			}
 			synchronized (clients) {
-				for(String ckey : clients.keySet()) {
+				Client client = null;
+				Browser browser = null;
+				Set<String> keyset = browsers.keySet();
+				Set<String> ckeyset = clients.keySet();
+				for(String key : keyset) {
+					browser = browsers.get(key);
+					browser.sendText("clients [");
+				}
+				for(String ckey : ckeyset) {
 					client = clients.get(ckey);
-	   				String t = ckey + ": " + client.name();
+					String t = ckey + ": " + client.name();
 					for(String key : keyset) {
 						browser = browsers.get(key);
 						browser.sendText("clients " + t);
 					}
 				}
-			}
-			for(String key : keyset) {
-				browser = browsers.get(key);
-				browser .sendText("clients ]");
+				for(String key : keyset) {
+					browser = browsers.get(key);
+					browser .sendText("clients ]");
+				}
+				for(String ckey : ckeyset) {
+					client = clients.get(ckey);
+					String[] names = client.file(null);
+					if(names.length > 0) {
+						for(String key : keyset) {
+							browser = browsers.get(key);
+							browser.sendText("files " + ckey + " [");
+						}
+						for(String name : names) {
+							for(String key : keyset) {
+								browser = browsers.get(key);
+								browser.sendText("files " + ckey + " " + name);
+							}
+						}
+						for(String key : keyset) {
+							browser = browsers.get(key);
+							browser.sendText("files " + ckey + " ]");
+						}
+					}
+				}
 			}
 		}
 	}

@@ -1,12 +1,20 @@
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import jakarta.websocket.Session;
 
 public class Client {
+	@SuppressWarnings("unused")
 	private WS ws;
 	private Session session;
 	private Monitor monitor;
+	private Map<String, File> files = new HashMap<>();
+	private List<String> names = new ArrayList<>();
 
 	public void sendText(String text) {
 		try {
@@ -16,7 +24,18 @@ public class Client {
 			e.printStackTrace();
 		}
 	}
-	
+
+	public String[] file(File file) {
+		if(file != null) {
+			String name = file.getName();
+			if(names.contains(name))
+				names.remove(name);
+			names.add(name);
+			files.put(name, file);
+		}
+		return names.toArray(new String[names.size()]);
+	}
+
 	public BufferedImage image() {
 		try {
 			return monitor.image();
@@ -32,7 +51,7 @@ public class Client {
 			e.printStackTrace();
 		}
 	}
-	
+
 	public String name() {
 		try {
 			return monitor.name();
@@ -67,34 +86,34 @@ public class Client {
 				monitor = new Monitor(new Dimension(w, h), n);
 			}
 			sendText("id " + session.getId());
-			ws.browser_sendClients();
+			WS.browser_sendClients();
 			return;
 		}
 
 		if(ope[0].equalsIgnoreCase("mouse")) {
 			String t = String.join(" ", ope);
-			ws.monitor_sendText(session.getId(), t);
+			WS.monitor_sendText(session.getId(), t);
 			return;
 		}
 
 		if(ope[0].equalsIgnoreCase("sysmon")) {
 			String t = String.join(" ", ope);
-			ws.monitor_sendText(session.getId(), t);
+			WS.monitor_sendText(session.getId(), t);
 			return;
 		}
 		if(ope[0].equalsIgnoreCase("cpu")) {
 			String t = String.join(" ", ope);
-			ws.monitor_sendText(session.getId(), t);
+			WS.monitor_sendText(session.getId(), t);
 			return;
 		}
 		if(ope[0].equalsIgnoreCase("mem")) {
 			String t = String.join(" ", ope);
-			ws.monitor_sendText(session.getId(), t);
+			WS.monitor_sendText(session.getId(), t);
 			return;
 		}
 		if(ope[0].equalsIgnoreCase("drv")) {
 			String t = String.join(" ", ope);
-			ws.monitor_sendText(session.getId(), t);
+			WS.monitor_sendText(session.getId(), t);
 			return;
 		}
 
@@ -102,7 +121,7 @@ public class Client {
 			synchronized (this) {
 				monitor.name(ope[1]);
 			}
-			ws.browser_sendClients();
+			WS.browser_sendClients();
 			return;
 		}
 	}

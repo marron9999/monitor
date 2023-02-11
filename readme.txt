@@ -7,6 +7,14 @@
 
 ■ ブラウザ内の背景色が薄緑の状態
 
+■ リモートとブラウザの間でファイルの送受信ができます
+
+　　- リモート接続中にブラウザにファイルをドロップすると、リモート（Downloadsフォルダ下）に送信します。
+
+　　- リモート内のアプルにファイルをドロップすると、ブラウザにファイル（Downloadsフォルダ下）に送信します。
+　　　　ブラウザのリモート一覧の下にドロップだれたファイル一覧が表示され、
+　　　　クリックするとテキストファイル等はブラウザで見ることができます。
+
 - キー操作
 
 　　ただしCTRL+DEL、ALT+TAB等の特殊な操作は、
@@ -32,7 +40,6 @@
 ■ 今はできないこと（今後拡張するかは？）
 
 - クリップボートの送受信
-- ファイルの送受信
 - リモート画面内のマウス形状への対応
 - リモート画面（複数モニタ）への対応
 
@@ -63,76 +70,16 @@
 
 ■ 参考　：　使った技術要素
 
-【【【 client側 : 500行くらい 】】】
+【【【 client側 】】】
 
-import java.awt.MouseInfo;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.Robot;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.awt.image.BufferedImage;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.StringSelection;
+　　[client_imports.txt](client_imports.txt)
 
-import java.io.DataOutputStream;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.ByteArrayOutputStream;
-
-import java.net.HttpURLConnection;
-import java.net.URI;
-import java.net.URL;
-import java.net.http.HttpClient;
-import java.net.http.WebSocket;
-import java.net.http.WebSocket.Listener;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
-
-import javax.imageio.ImageIO;
-
-javasysmon
-    https://github.com/jezhumble/javasysmon
+　　javasysmon
+　　https://github.com/jezhumble/javasysmon
 
 【【【 monitor側 : 500行くらい 】】】
 
-import java.awt.Dimension;
-import java.awt.image.BufferedImage;
-import java.awt.Color;
-import java.awt.Graphics;
-import java.awt.Toolkit;
-import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.DataFlavor;
-import java.awt.datatransfer.StringSelection;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-
-import java.util.HashMap;
-import java.util.Set;
-
-import javax.imageio.ImageIO;
-
-import jakarta.websocket.OnClose;
-import jakarta.websocket.OnError;
-import jakarta.websocket.OnMessage;
-import jakarta.websocket.OnOpen;
-import jakarta.websocket.Session;
-import jakarta.websocket.server.ServerEndpoint;
-
-import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
+　　[monitor_imports.txt](monitor_imports.txt)
 
 【【【 monitor側(Web) 】】】
 
@@ -141,9 +88,11 @@ import jakarta.servlet.http.HttpServletResponse;
 	- canvas
 	- image
 	- div/span他
-- JavaScript : 300行くらい 
+- JavaScript 
 	- WebSocket
 	- EventListener
+	- DropTarget
+	- XMLHttpRequest
 	- timer他
 
 ■ 参考　：　動作概要
