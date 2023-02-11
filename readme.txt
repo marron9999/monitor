@@ -72,14 +72,14 @@
 
 【【【 client側 】】】
 
-　　[client_imports.txt](client_imports.txt)
+　　client_imports.txt 参照
 
 　　javasysmon
 　　https://github.com/jezhumble/javasysmon
 
 【【【 monitor側 : 500行くらい 】】】
 
-　　[monitor_imports.txt](monitor_imports.txt)
+　　monitor_imports.txt 参照
 
 【【【 monitor側(Web) 】】】
 
