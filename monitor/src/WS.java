@@ -23,12 +23,19 @@ public class WS {
 		}
 		return null;
 	}
-	public static void client_file(String id, File file) {
+	public static void client_update_files(String id) {
 		Client client = clients.get(id);
 		if(client != null) {
-			client.file(file);
+			client.update_files();
 			browser_sendClients();
 		}
+	}
+	public static File client_file(String id, String name) {
+		Client client = clients.get(id);
+		if(client != null) {
+			return client.file(name);
+		}
+		return null;
 	}
 	public static void client_image(String id, BufferedImage img) {
 		Client client = clients.get(id);
@@ -176,7 +183,7 @@ public class WS {
 				}
 				for(String ckey : ckeyset) {
 					client = clients.get(ckey);
-					String[] names = client.file(null);
+					String[] names = client.files();
 					if(names.length > 0) {
 						for(String key : keyset) {
 							browser = browsers.get(key);

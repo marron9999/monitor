@@ -1,10 +1,10 @@
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import jakarta.websocket.Session;
 
@@ -13,8 +13,8 @@ public class Client {
 	private WS ws;
 	private Session session;
 	private Monitor monitor;
-	private Map<String, File> files = new HashMap<>();
-	private List<String> names = new ArrayList<>();
+	private Map<String, File> files = null;
+	private String[] names = null;
 
 	public void sendText(String text) {
 		try {
@@ -25,15 +25,30 @@ public class Client {
 		}
 	}
 
-	public String[] file(File file) {
-		if(file != null) {
+	public void update_files() {
+		files = new HashMap<>();
+		String host = monitor.name().toLowerCase() + "_";
+		for(File file : API.downloads.listFiles()) {
+			if(file.isDirectory()) continue;
 			String name = file.getName();
-			if(names.contains(name))
-				names.remove(name);
-			names.add(name);
-			files.put(name, file);
+			if(name.toLowerCase().startsWith(host)) {
+				name = name.substring(host.length()).replace(" ", "_");
+				files.put(name, file);
+			}
 		}
-		return names.toArray(new String[names.size()]);
+		Set<String> set = files.keySet();
+		names = set.toArray(new String[set.size()]);
+		Arrays.sort(names);
+	}
+
+	public File file(String name) {
+		return files.get(name);
+	}
+
+	public String[] files() {
+		if(names == null)
+			update_files();
+		return names;
 	}
 
 	public BufferedImage image() {
@@ -121,6 +136,7 @@ public class Client {
 			synchronized (this) {
 				monitor.name(ope[1]);
 			}
+			update_files();
 			WS.browser_sendClients();
 			return;
 		}

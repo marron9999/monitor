@@ -1,6 +1,7 @@
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 
 import javax.imageio.ImageIO;
 
@@ -23,22 +24,12 @@ public class API extends Base {
 		if(id.length() > 0) {
 
 			if(file.length() > 0) {
-				byte[] buf = getDownloadsFile(file);
+				File dfile = WS.client_file(id, file);
+				byte[] buf = getLocalFile(dfile);
 				if(buf != null) {
 					setCache(response);
-					String type = "application/octet-stream";
-					if(file.endsWith(".txt")) type = "text/plain";
-					else if(file.endsWith(".log")) type = "text/plain";
-					else if(file.endsWith(".js")) type = "text/plain";
-					else if(file.endsWith(".json")) type = "text/plain";
-					else if(file.endsWith(".css")) type = "text/plain";
-					else if(file.endsWith(".html")) type = "text/plain";
-					else if(file.endsWith(".htm")) type = "text/plain";
-					else if(file.endsWith(".png")) type = "image/png";
-					else if(file.endsWith(".jpg")) type = "image/jpeg";
-					else if(file.endsWith(".jpeg")) type = "image/jpeg";
-					else if(file.endsWith(".bmp")) type = "image/bmp";
-					else if(file.endsWith(".gif")) type = "image/gif";
+					String type = Files.probeContentType(new File(file).toPath());
+					if(type.startsWith("text/")) type = "text/plain";
 					response.setContentType(type);
 					ServletOutputStream sos = response.getOutputStream();
 					sos.write(buf);
@@ -95,7 +86,7 @@ public class API extends Base {
 			if(file.length() > 0) {
 				File dfile = getRequestBody_downloads(request, file);
 				if(dfile != null) {
-					WS.client_file(id, dfile);
+					WS.client_update_files(id);
 					response.setStatus(HttpServletResponse.SC_OK);
 					return;
 				}

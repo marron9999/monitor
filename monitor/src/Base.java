@@ -17,9 +17,12 @@ import jakarta.servlet.http.HttpServletResponse;
 public class Base extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
+	public static File downloads = 
+			new File(System.getenv("USERPROFILE"), "Downloads");
+
 	protected byte[] getDownloadsFile(String file) {
-		File dir = new File(System.getenv("USERPROFILE"), "Downloads");
-		dir = new File(dir, file);
+		if(file == null) return null;
+		File dir = new File(downloads, file);
 		try {
 			byte[] buffer = getLocalFile(dir);
 			return buffer;
@@ -30,6 +33,7 @@ public class Base extends HttpServlet {
 	}
 
 	protected  byte[] getLocalFile(File file) {
+		if(file == null) return null;
 		if( ! file.exists()) return null;
 		ByteArrayOutputStream body = new ByteArrayOutputStream();
 		try {
@@ -70,12 +74,13 @@ public class Base extends HttpServlet {
 //	}
 
 	protected File getRequestBody_downloads(HttpServletRequest request, String file) {
-		File dir = new File(System.getenv("USERPROFILE"), "Downloads");
-		dir = new File(dir, file);
+		if(file == null) return null;
+		File dir = new File(downloads, file);
 		return getRequestBody_local(request, dir);
 	}
 
 	protected File getRequestBody_local(HttpServletRequest request, File file) {
+		if(file == null) return null;
 		if(file.exists()) file.delete();
 		try {
 			FileOutputStream fos = new FileOutputStream(file);
@@ -188,6 +193,7 @@ public class Base extends HttpServlet {
 	}
 
 	protected File getStream_file(InputStream is, File file) {
+		if(file == null) return null;
 		try {
 			FileOutputStream fos = new FileOutputStream(file);
 			byte[] buffer = new byte[4096];

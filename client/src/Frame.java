@@ -1,4 +1,5 @@
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -22,25 +23,60 @@ import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenuBar;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.border.EmptyBorder;
 
-public abstract class Frame extends JFrame implements DropTargetListener {
+public abstract class Frame extends JFrame {
 	private static final long serialVersionUID = 1L;
 	private JTextArea textArea;
 	private JScrollPane scrollPane;
+	private JLabel cpu;
+	private JLabel mem;
+	private JLabel drv;
 	public OutputStream stream;
 	private DataFlavor flavor = DataFlavor.javaFileListFlavor;
 
-	public abstract void drop(File file);
+	public abstract void drop_file(File file);
 
-	public int getEndPosition() {
+	private int getEndPosition() {
 		return textArea.getDocument().getLength();
 	}
 
-	public void setEndPosition() {
+	private void setEndPosition() {
 		textArea.setCaretPosition(getEndPosition());
+	}
+
+	public void setCPU(String val) {
+		int p = val.indexOf(" ");
+		if(p > 0) {
+			val = "  " + val.substring(p + 1);
+		} else {
+			val = "  " + val + "%";
+		}
+		val = val.substring(val.length() - 4);
+		cpu.setText(" CPU" + val + " ");
+	}
+	public void setMEM(String val) {
+		int p = val.indexOf(" ");
+		if(p > 0) {
+			val = "  " + val.substring(p + 1);
+		} else {
+			val = "  " + val + "%";
+		}
+		val = val.substring(val.length() - 4);
+		mem.setText(" MEM" + val + " ");
+	}
+	public void setDRV(String val) {
+		int p = val.indexOf(" ");
+		if(p > 0) {
+			val = "  " + val.substring(p + 1);
+		} else {
+			val = "  " + val + "%";
+		}
+		val = val.substring(val.length() - 4);
+		drv.setText(" DRV" + val + " ");
 	}
 
 	public Frame() { // Constructor
@@ -75,29 +111,27 @@ public abstract class Frame extends JFrame implements DropTargetListener {
 		setSize(400, 300);
 
 		JMenuBar menuBar = new JMenuBar();
-		JLabel label = new JLabel("　");
-		menuBar.add(label);
-		label = new JLabel("Clear");
+		menuBar.setLayout(new BorderLayout());
+		JPanel panel = new JPanel();
+		panel.setOpaque(false);
+		menuBar.add(panel, BorderLayout.WEST);
+		JLabel label = new JLabel(" Clear ");
 		label.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				textArea.setText("");
 			}
 		});
-		menuBar.add(label);
-		label = new JLabel("　");
-		menuBar.add(label);
-		label = new JLabel("Upload");
+		panel.add(label);
+		label = new JLabel(" Upload ");
 		label.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
 				select();
 			}
 		});
-		menuBar.add(label);
-		label = new JLabel("　");
-		menuBar.add(label);
-		label = new JLabel("Downloads");
+		panel.add(label);
+		label = new JLabel(" Downloads ");
 		label.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseClicked(MouseEvent e) {
@@ -110,14 +144,26 @@ public abstract class Frame extends JFrame implements DropTargetListener {
 				}
 			}
 		});
-		menuBar.add(label);
+		panel.add(label);
+		
+		panel = new JPanel();
+		panel.setOpaque(false);
+		menuBar.add(panel, BorderLayout.EAST);
+		Font font = label.getFont();
+		font = new Font(Font.MONOSPACED, 0, 10);
+		panel.add(cpu = new JLabel(" CPU   0% "));
+		cpu.setFont(font);
+		panel.add(mem = new JLabel(" MEM   0% "));
+		mem.setFont(font);
+		panel.add(drv = new JLabel(" DRV   0% "));
+		drv.setFont(font);
 		setJMenuBar(menuBar);
 
 		textArea = new JTextArea("");
 		textArea.setLineWrap(true);
 		textArea.setEditable(false);
 		textArea.setFocusable(false);
-		Font font = textArea.getFont();
+		font = textArea.getFont();
 		textArea.setFont(new Font("Meiryo UI", 0, font.getSize()));
 		scrollPane = new JScrollPane(textArea);
 		scrollPane.setBorder(new EmptyBorder(0, 4, 0, 0));
@@ -125,11 +171,58 @@ public abstract class Frame extends JFrame implements DropTargetListener {
 				JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		add(scrollPane, BorderLayout.CENTER);
 
-		new DropTarget(textArea, this);
+		new DropTarget(textArea, new DropTargetListener() {
+			@Override
+			public void dragEnter(DropTargetDragEvent dtde) {
+				if (dtde.isDataFlavorSupported(flavor)) {
+					dtde.acceptDrag(DnDConstants.ACTION_COPY);
+					return;
+				}
+				dtde.rejectDrag();
+			}
+
+			@Override
+			public void dragOver(DropTargetDragEvent dtde) {
+				if (dtde.isDataFlavorSupported(flavor)) {
+					dtde.acceptDrag(DnDConstants.ACTION_COPY);
+					return;
+				}
+				dtde.rejectDrag();
+			}
+
+			@Override
+			public void dropActionChanged(DropTargetDragEvent dtde) {
+			}
+
+			@Override
+			public void dragExit(DropTargetEvent dte) {
+			}
+
+			@Override
+			public void drop(DropTargetDropEvent dtde) {
+				dtde.acceptDrop(DnDConstants.ACTION_COPY);
+				boolean flg = false;
+				try {
+					if (dtde.isDataFlavorSupported(flavor)) {
+						Transferable tr = dtde.getTransferable();
+						@SuppressWarnings("unchecked")
+						List<File> list = (List<File>) tr.getTransferData(flavor);
+						for (File file : list) {
+							drop_file(file);
+						}
+						flg = true;
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				} finally {
+					dtde.dropComplete(flg);
+				}
+			}
+		});
 		setVisible(true);		
 	}
 
-	public void select() {
+	private void select() {
 		JFileChooser chooser = new JFileChooser();
 		chooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
 		chooser.setMultiSelectionEnabled(true);
@@ -137,55 +230,8 @@ public abstract class Frame extends JFrame implements DropTargetListener {
 				== JFileChooser.APPROVE_OPTION) {
 			File[] list = chooser.getSelectedFiles();
 			for (File file : list) {
-				drop(file);
+				drop_file(file);
 			}
-		}
-	}
-
-	@Override
-	public void dragEnter(DropTargetDragEvent dtde) {
-		if (dtde.isDataFlavorSupported(flavor)) {
-			dtde.acceptDrag(DnDConstants.ACTION_COPY);
-			return;
-		}
-		dtde.rejectDrag();
-	}
-
-	@Override
-	public void dragOver(DropTargetDragEvent dtde) {
-		if (dtde.isDataFlavorSupported(flavor)) {
-			dtde.acceptDrag(DnDConstants.ACTION_COPY);
-			return;
-		}
-		dtde.rejectDrag();
-	}
-
-	@Override
-	public void dropActionChanged(DropTargetDragEvent dtde) {
-	}
-
-	@Override
-	public void dragExit(DropTargetEvent dte) {
-	}
-
-	@Override
-	public void drop(DropTargetDropEvent dtde) {
-		dtde.acceptDrop(DnDConstants.ACTION_COPY);
-		boolean flg = false;
-		try {
-			if (dtde.isDataFlavorSupported(flavor)) {
-				Transferable tr = dtde.getTransferable();
-				@SuppressWarnings("unchecked")
-				List<File> list = (List<File>) tr.getTransferData(flavor);
-				for (File file : list) {
-					drop(file);
-				}
-				flg = true;
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			dtde.dropComplete(flg);
 		}
 	}
 }
