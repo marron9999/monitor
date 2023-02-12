@@ -11,7 +11,7 @@ import jakarta.servlet.http.Part;
 
 @WebServlet("/api2")
 @MultipartConfig()
-public class API2 extends Base {
+public class API2 extends APIBase {
 	private static final long serialVersionUID = 1L;
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)

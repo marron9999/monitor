@@ -24,7 +24,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public abstract class Base {
+public abstract class MainBase {
 	protected HttpClient client;
 	protected WebSocket ws;
 	protected Robot robot;
@@ -32,7 +32,8 @@ public abstract class Base {
 	protected SysMon sysmon = null;
 	protected String site = "ws://192.168.1.127:8080/monitor/ws";
 	protected String id = null;
-	protected int mouse_x = -1, mouse_y = -1;
+	protected int mouse_x = -1;
+	protected int mouse_y = -1;
 	protected boolean verbose = false;
 	protected int sleep = 500;
 	protected Frame frame;
@@ -72,21 +73,21 @@ public abstract class Base {
 		if(sm != null) {
 			frame.setCPU(sm);
 			if(ws != null) {
-				ws.sendText("sysmon " + sm, true);
+				ws.sendText(sm, true);
 			}
 		}
 		sm = sysmon.diff_mem();
 		if(sm != null) {
 			frame.setMEM(sm);
 			if(ws != null) {
-				ws.sendText("sysmon " + sm, true);
+				ws.sendText(sm, true);
 			}
 		}
 		sm = sysmon.diff_drv();
 		if(sm != null) {
 			frame.setDRV(sm);
 			if(ws != null) {
-				ws.sendText("sysmon " + sm, true);
+				ws.sendText(sm, true);
 			}
 		}
 	}
@@ -202,6 +203,15 @@ public abstract class Base {
 			sysmon();
 
 			Monitor.sleep(sleep);
+		}
+
+		{
+			String sm = sysmon.curr_cpu();
+			ws.sendText(sm, true);
+			sm = sysmon.curr_mem();
+			ws.sendText(sm, true);
+			sm = sysmon.curr_drv();
+			ws.sendText(sm, true);
 		}
 
 		BufferedImage img = monitor.new_image();

@@ -38,16 +38,35 @@ public class Browser {
 		|| ope[0].equalsIgnoreCase("dblclick")
 		|| ope[0].equalsIgnoreCase("keydown")
 		|| ope[0].equalsIgnoreCase("keyup")
-		|| ope[0].equalsIgnoreCase("sysmon")
-		|| ope[0].equalsIgnoreCase("cpu")
-		|| ope[0].equalsIgnoreCase("mem")
-		|| ope[0].equalsIgnoreCase("drv")
 		) {
 			String id = null;
 			synchronized (this) {
 				id = monitor_id;
 			}
 			WS.client_sendText(id, message);
+			return;
+		}
+
+		if(ope[0].equalsIgnoreCase("sysmon")) {
+			String[] val = WS.client_sysmon(monitor_id);
+			sendText("sysmon cpu " + val[0]);
+			sendText("sysmon mem " + val[1]);
+			sendText("sysmon drv " + val[2]);
+			return;
+		}
+		if(ope[0].equalsIgnoreCase("cpu")) {
+			String val = WS.client_cpu(monitor_id);
+			sendText("cpu " + val);
+			return;
+		}
+		if(ope[0].equalsIgnoreCase("mem")) {
+			String val = WS.client_mem(monitor_id);
+			sendText("mem " + val);
+			return;
+		}
+		if(ope[0].equalsIgnoreCase("drv")) {
+			String val = WS.client_drv(monitor_id);
+			sendText("drv " + val);
 			return;
 		}
 
@@ -69,7 +88,7 @@ public class Browser {
 			try {
 				Dimension size = WS.client_size(ope[1]);
 				if(size != null) {
-					session.getBasicRemote().sendText("screen " + size.width + " " + size.height);
+					sendText("screen " + size.width + " " + size.height);
 					synchronized (this) {
 						monitor_id = ope[1]; 
 					}
@@ -77,6 +96,17 @@ public class Browser {
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			return;
+		}
+
+		if(ope[0].equalsIgnoreCase("delete")) {
+			WS.client_delete(ope[1], ope[2]);
+			return;
+		}
+
+		if(ope[0].equalsIgnoreCase("fileinfo")) {
+			String val = WS.client_fileinfo(ope[1], ope[2]);
+			sendText("fileinfo " + val);
 			return;
 		}
 	}

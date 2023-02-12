@@ -1,5 +1,4 @@
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
@@ -33,8 +32,8 @@ public abstract class Frame extends JFrame {
 	private JTextArea textArea;
 	private JScrollPane scrollPane;
 	private JLabel cpu;
-	private JLabel mem;
-	private JLabel drv;
+//	private JLabel mem;
+//	private JLabel drv;
 	public OutputStream stream;
 	private DataFlavor flavor = DataFlavor.javaFileListFlavor;
 
@@ -48,35 +47,28 @@ public abstract class Frame extends JFrame {
 		textArea.setCaretPosition(getEndPosition());
 	}
 
-	public void setCPU(String val) {
+	private String usage(String val) {
 		int p = val.indexOf(" ");
-		if(p > 0) {
-			val = "  " + val.substring(p + 1);
-		} else {
-			val = "  " + val + "%";
-		}
+		if(p > 0)
+			val = val.substring(p + 1);
+		p = val.indexOf(" ");
+		if(p > 0)
+			val = val.substring(0, p);
+		p = val.indexOf("%");
+		if(p > 0)
+			val = val.substring(0, p);
+		val = "  " + val + "%";
 		val = val.substring(val.length() - 4);
-		cpu.setText(" CPU" + val + " ");
+		return val;
+	}
+	public void setCPU(String val) {
+		cpu.setText(" CPU" + usage(val) + " ");
 	}
 	public void setMEM(String val) {
-		int p = val.indexOf(" ");
-		if(p > 0) {
-			val = "  " + val.substring(p + 1);
-		} else {
-			val = "  " + val + "%";
-		}
-		val = val.substring(val.length() - 4);
-		mem.setText(" MEM" + val + " ");
+//		mem.setText(" MEM" + usage(val) + " ");
 	}
 	public void setDRV(String val) {
-		int p = val.indexOf(" ");
-		if(p > 0) {
-			val = "  " + val.substring(p + 1);
-		} else {
-			val = "  " + val + "%";
-		}
-		val = val.substring(val.length() - 4);
-		drv.setText(" DRV" + val + " ");
+//		drv.setText(" DRV" + usage(val) + " ");
 	}
 
 	public Frame() { // Constructor
@@ -150,13 +142,13 @@ public abstract class Frame extends JFrame {
 		panel.setOpaque(false);
 		menuBar.add(panel, BorderLayout.EAST);
 		Font font = label.getFont();
-		font = new Font(Font.MONOSPACED, 0, 10);
+		font = new Font(Font.MONOSPACED, 0, font.getSize());
 		panel.add(cpu = new JLabel(" CPU   0% "));
 		cpu.setFont(font);
-		panel.add(mem = new JLabel(" MEM   0% "));
-		mem.setFont(font);
-		panel.add(drv = new JLabel(" DRV   0% "));
-		drv.setFont(font);
+//		panel.add(mem = new JLabel(" MEM   0% "));
+//		mem.setFont(font);
+//		panel.add(drv = new JLabel(" DRV   0% "));
+//		drv.setFont(font);
 		setJMenuBar(menuBar);
 
 		textArea = new JTextArea("");

@@ -79,17 +79,29 @@ body {
 }
 #list div.s {
 	cursor: pointer;
+	margin-bottom: 2px;
 }
-#list div.f div {
+#list div.f span {
 	display: inline-block;
 	cursor: pointer;
-	padding-left: 18px;
+	padding-left: 4px;
 	padding-right: 4px;
+	margin-bottom: 2px;
 	font-size: 9px;
 	line-height: 9px;
 	word-break: break-all;
+	width: calc(100% - 45px);
+    vertical-align: middle;
 }
-
+#list div.f img {
+	display: inline-block;
+	cursor: pointer;
+	margin-left: 15px;
+	width: auto;
+	height: auto;
+	border: none;
+	vertical-align: top;
+}
 
 #load {
 	display: inline-block;

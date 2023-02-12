@@ -12,7 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 @WebServlet("/api")
-public class API extends Base {
+public class API extends APIBase {
 	private static final long serialVersionUID = 1L;
 
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -28,6 +28,8 @@ public class API extends Base {
 				byte[] buf = getLocalFile(dfile);
 				if(buf != null) {
 					setCache(response);
+					response.setHeader("Content-Disposition",
+							"attachment; filename=\"" + file + "\"");
 					String type = Files.probeContentType(new File(file).toPath());
 					if(type.startsWith("text/")) type = "text/plain";
 					response.setContentType(type);

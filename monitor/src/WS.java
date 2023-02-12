@@ -23,6 +23,15 @@ public class WS {
 		}
 		return null;
 	}
+
+	public static void client_image(String id, BufferedImage img) {
+		Client client = clients.get(id);
+		if(client != null) {
+			client.image(img);
+			monitor_sendText(id, "redraw");
+		}
+	}
+
 	public static void client_update_files(String id) {
 		Client client = clients.get(id);
 		if(client != null) {
@@ -30,6 +39,7 @@ public class WS {
 			browser_sendClients();
 		}
 	}
+
 	public static File client_file(String id, String name) {
 		Client client = clients.get(id);
 		if(client != null) {
@@ -37,12 +47,75 @@ public class WS {
 		}
 		return null;
 	}
-	public static void client_image(String id, BufferedImage img) {
+
+	public static void client_delete(String id, String name) {
 		Client client = clients.get(id);
 		if(client != null) {
-			client.image(img);
-			monitor_sendText(id, "redraw");
+			client.delete_file(name);
+			client.update_files();
+			browser_sendClients();
 		}
+	}
+
+	public static String client_fileinfo(String id, String name) {
+		if(id == null) return null;
+		Client client = null;
+		synchronized (clients) {
+			client = clients.get(id);
+		}
+		if(client != null) {
+			return client.info_file(name);
+		}
+		return null;
+	}
+
+	public static String[] client_sysmon(String id) {
+		if(id == null) return null;
+		Client client = null;
+		synchronized (clients) {
+			client = clients.get(id);
+		}
+		if(client != null) {
+			return new String[] {
+					client.usage_cpu(),
+					client.usage_mem(),
+					client.usage_drv() };
+		}
+		return null;
+	}
+
+	public static String client_cpu(String id) {
+		if(id == null) return null;
+		Client client = null;
+		synchronized (clients) {
+			client = clients.get(id);
+		}
+		if(client != null) {
+			return client.info_cpu();
+		}
+		return null;
+	}
+	public static String client_mem(String id) {
+		if(id == null) return null;
+		Client client = null;
+		synchronized (clients) {
+			client = clients.get(id);
+		}
+		if(client != null) {
+			return client.info_mem();
+		}
+		return null;
+	}
+	public static String client_drv(String id) {
+		if(id == null) return null;
+		Client client = null;
+		synchronized (clients) {
+			client = clients.get(id);
+		}
+		if(client != null) {
+			return client.info_drv();
+		}
+		return null;
 	}
 
 	public static void client_sendText(String id, String message) {

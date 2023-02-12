@@ -3,7 +3,7 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.net.http.WebSocket;
 
-public class Main extends Base {
+public class Main extends MainBase {
 
 	private String message;
 	private String[] ope;
@@ -11,9 +11,12 @@ public class Main extends Base {
 	@SuppressWarnings("unused")
 	private boolean alt; 
 	private boolean shift;
+	protected int button;
+	protected int key;
 
 	private Boolean string() {
 		if(ope[0].trim().equalsIgnoreCase("string")) {
+
 			if(ope[1].equalsIgnoreCase("@verbose")) {
 				message = "verbose " + verbose;
 				try {
@@ -25,6 +28,7 @@ public class Main extends Base {
 				System.out.println(message);
 				return true;
 			}
+
 			if(ope[1].equalsIgnoreCase("@sleep")) {
 				message = "sleep " + sleep;
 				try {
@@ -36,6 +40,7 @@ public class Main extends Base {
 				System.out.println(message);
 				return true;
 			}
+
 			if(ope[1].equalsIgnoreCase("@name")) {
 				message = "name " + monitor.name();
 				try {
@@ -50,6 +55,37 @@ public class Main extends Base {
 				System.out.println(message);
 				return true;
 			}
+
+			if(ope[1].equalsIgnoreCase("@reset")) {
+				if((button & 0x01) != 0) {
+					System.out.println("reset BUTTON1_DOWN_MASK");
+					robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
+				}
+				if((button & 0x02) != 0) {
+					System.out.println("reset BUTTON2_DOWN_MASK");
+					robot.mouseRelease(InputEvent.BUTTON2_DOWN_MASK);
+				}
+				if((button & 0x04) != 0) {
+					System.out.println("reset BUTTON3_DOWN_MASK");
+					robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
+				}
+				button = 0;
+				if((key & 0x01) != 0) {
+					System.out.println("reset VK_CONTROL");
+					robot.keyRelease(KeyEvent.VK_CONTROL);
+				}
+				if((key & 0x02) != 0) {
+					System.out.println("reset VK_SHIFT");
+					robot.keyRelease(KeyEvent.VK_SHIFT);
+				}
+				if((key & 0x04) != 0) {
+					System.out.println("reset VK_ALT");
+					robot.keyRelease(KeyEvent.VK_ALT);
+				}
+				key = 0;
+				return true;
+			}
+
 			paste(message.substring(ope[0].length()+1).trim());
 			return true;
 		}
@@ -63,6 +99,9 @@ public class Main extends Base {
 			try {
 				int _key = Integer.parseInt(ope[1].trim()); 
 				int vkey = Monitor.keycode(_key, shift);
+				if(vkey == KeyEvent.VK_CONTROL) key |= 0x01;
+				else if(vkey == KeyEvent.VK_SHIFT) key |= 0x02;
+				else if(vkey == KeyEvent.VK_ALT) key |= 0x04;
 				try {
 					if(vkey == KeyEvent.VK_UNDERSCORE) {
 						paste("_");
@@ -85,6 +124,9 @@ public class Main extends Base {
 			try {
 				int _key = Integer.parseInt(ope[1].trim()); 
 				int vkey = Monitor.keycode(_key, shift);
+				if(vkey == KeyEvent.VK_CONTROL) key &= 0x00fe;
+				else if(vkey == KeyEvent.VK_SHIFT) key &= 0x00fd;
+				else if(vkey == KeyEvent.VK_ALT) key &= 0x00fb;
 				try {
 					if(vkey == KeyEvent.VK_UNDERSCORE) {
 						// NONE
@@ -154,6 +196,7 @@ public class Main extends Base {
 		if(ope[0].trim().equalsIgnoreCase("mousedown")) {
 			if(ope[3].equals("0")) { 
 				if(mouse_xy()) {
+					button |= 0x01;
 					robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
 					//if( ! ctrl)
 					//	robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
@@ -161,12 +204,14 @@ public class Main extends Base {
 				}
 			} else if(ope[3].equals("1")) { 
 				if(mouse_xy()) {
+					button |= 0x02;
 					robot.mousePress(InputEvent.BUTTON2_DOWN_MASK);
 					//if( ! ctrl)
 					//	robot.mouseRelease(InputEvent.BUTTON2_DOWN_MASK);
 					return true;
 				}
 			} else if(ope[3].equals("2")) {
+				button |= 0x04;
 				if(mouse_xy()) {
 					robot.mousePress(InputEvent.BUTTON3_DOWN_MASK);
 					//if( ! ctrl)
@@ -182,10 +227,13 @@ public class Main extends Base {
 			{
 				mouse_xy();
 				if(ope[3].equals("0")) { 
+					button &= 0x00fe;
 					robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);
 				} else if(ope[3].equals("1")) { 
+					button &= 0x00fd;
 					robot.mouseRelease(InputEvent.BUTTON2_DOWN_MASK);
 				} else if(ope[3].equals("2")) { 
+					button &= 0x00fb;
 					robot.mouseRelease(InputEvent.BUTTON3_DOWN_MASK);
 				}
 			}
@@ -250,39 +298,15 @@ public class Main extends Base {
 		if(ope[0].trim().equalsIgnoreCase("sysmon")) {
 			String rc = sysmon.curr_cpu();
 			if(rc != null) {
-				ws.sendText("sysmon " + rc, true);
+				ws.sendText(rc, true);
 			}
 			rc = sysmon.curr_mem();
 			if(rc != null) {
-				ws.sendText("sysmon " + rc, true);
+				ws.sendText(rc, true);
 			}
 			rc = sysmon.curr_drv();
 			if(rc != null) {
-				ws.sendText("sysmon " + rc, true);
-			}
-			return true;
-		}
-
-		if(ope[0].trim().equalsIgnoreCase("cpu")) {
-			String rc = sysmon.getCpu();
-			if(rc != null) {
-				ws.sendText("cpu " + rc, true);
-			}
-			return true;
-		}
-
-		if(ope[0].trim().equalsIgnoreCase("mem")) {
-			String rc = sysmon.getMem();
-			if(rc != null) {
-				ws.sendText("mem " + rc, true);
-			}
-			return true;
-		}
-
-		if(ope[0].trim().equalsIgnoreCase("drv")) {
-			String rc = sysmon.getDrv();
-			if(rc != null) {
-				ws.sendText("drv " + rc, true);
+				ws.sendText(rc, true);
 			}
 			return true;
 		}

@@ -30,6 +30,7 @@ window.onload = function() {
 	ws["cpu"] = sysinfo;
 	ws["mem"] = sysinfo;
 	ws["drv"] = sysinfo;
+	ws["fileinfo"] = fileinfo;
 	ws.onopen = function() {
 		ws.send("browser");
 	};
@@ -174,8 +175,12 @@ function send_in() {
 	if(monitor != null) {
 		let c = E('in');
 		if(c.value.length > 0) {
-			ws.send("string " + c.value);
+			let s = c.value.trim();
+			ws.send("string " + s);
 			c.value = "";
+			if(s == "@reset") {
+				mouseevent_b = {'0':0, '1':0, '2':0};
+			}
 		}
 	}
 } 
@@ -373,14 +378,21 @@ function files(o) {
 		E("f" + o[1]).innerHTML = files_list;
 		return;
 	}
-	files_list += "<div onclick='files_select(this)'>" + o[2] + "</div>";
+	files_list += "<div><img src='trash.png' onclick='files_delete(this)'>";
+	files_list += "<span onmouseover='showfile(this)' onclick='files_select(this)'>" + o[2] + "</span></div>";
 }
 
 function files_select(e) {
-	let id = e.parentElement.id.substring(1);
+	let id = e.parentElement.parentElement.id.substring(1);
 	let url = "http://" + host + ":" + port + "/monitor/api?id=" + id
 			+ "&file=" + e.innerHTML;
 	open(url, e.innerHTML);
+}
+
+function files_delete(e) {
+	let id = e.parentElement.parentElement.id.substring(1);
+	id += " " + e.parentElement.textContent;
+	ws.send("delete " + id);
 }
 
 var clients_list = "";
@@ -488,6 +500,7 @@ function hidelist(htime) {
 		E("lists").className = "";
 		E("show").style.display = "";
 		E("hide").style.display = "none";
+		hideinfo()
 	}, htime);
 }
 
@@ -555,8 +568,27 @@ function sysinfo(o) {
 	t + "</span>";
 	E("info").innerHTML = t.replace(/\n/g, "<br>");
 }
+function fileinfo(o) {
+	let t = "<span>";
+	for(let i=1; i<o.length; i++) {
+		t += " " + o[i];
+	}
+	t + "</span>";
+	E("info").innerHTML = t.replace(/\n/g, "<br>");
+}
 
 var hideinfo_time = null;
+function hideinfo() {
+	if(hideinfo_time != null) {
+		clearTimeout(hideinfo_time);
+		hideinfo_time = null;
+	}
+	E("info").style.display = "none";
+	E("info").innerHTML = "";
+	E("info").style.right = null;
+	E("info").style.top = null;
+}
+
 function showinfo(m) {
 	if(monitor == null) return;
 	if(m == 0) m = "cpu"; 
@@ -569,13 +601,24 @@ function showinfo(m) {
 			clearTimeout(hideinfo_time);
 			hideinfo_time = null;
 		}
-		E("info").style.display = "inline-block";
+		E("info").style.right = null;
+		E("info").style.top = null;
 		E("info").innerHTML  = "";
+		E("info").style.display = "inline-block";
 	} 
-	hideinfo_time = setTimeout(function() {
-		hideinfo_time = null;
-		E("info").style.display = "none";
-		E("info").innerHTML = "";
-	}, 10000);
+	hideinfo_time = setTimeout(hideinfo, 10000);
 }
 
+function showfile(e) {
+	let id = e.parentElement.parentElement.id.substring(1);
+	ws.send("fileinfo " + id + " " + e.innerHTML);
+	if(hideinfo_time != null) {
+		clearTimeout(hideinfo_time);
+		hideinfo_time = null;
+	}
+	E("info").style.right = "215px";
+	E("info").style.top = e.offsetTop + "px";
+	E("info").innerHTML  = "";
+	E("info").style.display = "inline-block";
+	hideinfo_time = setTimeout(hideinfo, 10000);
+}

@@ -24,7 +24,7 @@ public class SysMon {
 		if(this.cpu == null
 		|| this.cpu.usage != cpu.usage) {
 			this.cpu = cpu;
-			return "cpu " + cpu.usage + "%";
+			return "cpu " + cpu.usage + "% " + cpu.toString();
 		}
 		return null;
 	}
@@ -35,7 +35,7 @@ public class SysMon {
 		if(this.mem == null
 		|| this.mem.usage != mem.usage) {
 			this.mem = mem;
-			return "mem " + mem.usage + "%";
+			return "mem " + mem.usage + "% " + mem.toString();
 		}
 		return null;
 	}
@@ -46,7 +46,7 @@ public class SysMon {
 		if(this.drv == null
 		|| this.drv.usage != drv.usage) {
 			this.drv = drv;
-			return "drv " + drv.usage + "%";
+			return "drv " + drv.usage + "% " + drv.toString();
 		}
 		return null;
 	}
@@ -54,7 +54,7 @@ public class SysMon {
 	public String curr_cpu() {
 		if(sysmon == null) return null;
 		if(this.cpu != null) {
-			return "cpu " + cpu.usage + "%";
+			return "cpu " + cpu.usage + "% " + cpu.toString();
 		}
 		return null;
 	}
@@ -62,7 +62,7 @@ public class SysMon {
 	public String curr_mem() {
 		if(sysmon == null) return null;
 		if(this.mem != null) {
-			return "mem " + mem.usage + "%";
+			return "mem " + mem.usage + "% " + mem.toString();
 		}
 		return null;
 	}
@@ -70,22 +70,9 @@ public class SysMon {
 	public String curr_drv() {
 		if(sysmon == null) return null;
 		if(this.drv != null) {
-			return "drv " + drv.usage + "%";
+			return "drv " + drv.usage + "% " + drv.toString();
 		}
 		return null;
-	}
-
-	public String getCpu() {
-		if(cpu == null) return null;
-		return cpu.toString();
-	}
-	public String getMem() {
-		if(mem == null) return null;
-		return mem.toString();
-	}
-	public String getDrv() {
-		if(drv == null) return null;
-		return drv.toString();
 	}
 
 	public class CPU {
