@@ -187,8 +187,8 @@ function send_in() {
 
 function keydown(event) {
 	if(event.target.id != "body") return true;
-	console.log("keydown " + event.keyCode);
-	if( ! event.keydown) {
+	if( ! event.repeat) {
+		console.log("keydown " + event.keyCode);
 		let k = keys(event);
 		if(monitor != null) {
 			ws.send("keydown " + event.keyCode + k);

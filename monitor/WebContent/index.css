@@ -166,13 +166,14 @@ body {
 	position: absolute;
 	display: inline-block;
 	top: 3px;
-	left:3px;
+	right:3px;
 	z-index: 8;
+	width: calc(100%);
+	text-align: right;
 }
 #info {
 	display: none;
 	position: absolute;
-	display: none;
 	top: 5px;
 	right:5px;
 	z-index: 7;
@@ -225,14 +226,11 @@ body {
 }
 
 #ctrl, #alt, #shift {
-	position: absolute;
 	display: inline-block;
 	border: 1px solid #aaa;
 	border-radius: 4px 4px;
 	text-align: center;
 	width: 30px;
-	top: 3px;
-	left:0px;
 	cursor: pointer;
 	color: #aaa;
 	text-shadow:
@@ -245,6 +243,8 @@ body {
 		0px 1px 1px white,
 		0px -1px 1px white;
 	z-index: 9;
+	margin-bottom: 2px;
+	padding: 2px 4px;
 }
 #ctrl.s1, #alt.s1, #shift.s1 {
 	border-color: blue;
