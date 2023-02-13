@@ -143,6 +143,25 @@ public class Monitor {
 			if(shift) return KeyEvent.VK_UNDERSCORE;
 			return KeyEvent.VK_BACK_SLASH;
 		}
+		if(code == 44) return KeyEvent.VK_PRINTSCREEN;
+		if(code == 45) return KeyEvent.VK_INSERT;
+		if(code == 46) return KeyEvent.VK_DELETE;
+		//if(code == 36) return KeyEvent.VK_HOME;
+		//if(code == 35) return KeyEvent.VK_END;
+		//if(code == 33) return KeyEvent.VK_PAGE_UP;
+		//if(code == 34) return KeyEvent.VK_PAGE_DOWN;
+		if(code == 91) return KeyEvent.VK_WINDOWS;
+		//if(code == 145) return KeyEvent.VK_SCROLL_LOCK;
+		//if(code == 144) return KeyEvent.VK_NUM_LOCK;
+		//if(code == 20) return KeyEvent.VK_CAPS_LOCK;
+		//if(code == 8) return KeyEvent.VK_BACK_SPACE;
+		//if(code == 32) return KeyEvent.VK_SPACE;
+		//if(code == 16) return KeyEvent.VK_SHIFT;
+		//if(code == 17) return KeyEvent.VK_CONTROL;
+		//if(code == 18) return KeyEvent.VK_ALT;
+		//if(code == 112) return KeyEvent.VK_F1;
+		//if(code == 27) return KeyEvent.VK_ESCAPE;
+		//if(code == 9) return KeyEvent.VK_TAB;
 		return code;
 	}
 }

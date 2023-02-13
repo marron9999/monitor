@@ -129,6 +129,8 @@ public abstract class MainBase {
 		}
 		if(monitor == null)
 			monitor = new Monitor(Monitor.toolkit.getScreenSize(), null);
+		BufferedImage img = monitor.new_image();
+		monitor.image(img);
 		frame.setTitle(monitor.name());
 		System.setOut(new PrintStream(frame.stream));
 		System.setErr(System.out);
@@ -214,7 +216,7 @@ public abstract class MainBase {
 			ws.sendText(sm, true);
 		}
 
-		BufferedImage img = monitor.new_image();
+		img = monitor.new_image();
 		while(ws != null) {
 			Graphics g = img.getGraphics();
 			g.drawImage(robot.createScreenCapture(rect),

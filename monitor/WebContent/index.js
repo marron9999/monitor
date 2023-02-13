@@ -186,6 +186,7 @@ function send_in() {
 } 
 
 function keydown(event) {
+	if(event.target.id != "body") return true;
 	console.log("keydown " + event.keyCode);
 	if( ! event.keydown) {
 		let k = keys(event);
@@ -204,6 +205,7 @@ function keydown(event) {
 	return false;
 } 
 function keyup(event) {
+	if(event.target.id != "body") return true;
 	console.log("keyup " + event.keyCode);
 	let k = keys(event);
 	if(monitor != null) {
@@ -221,14 +223,22 @@ var mouseevent_x = -1;
 var mouseevent_y = -1;
 var mouseevent_b = {'0':0, '1':0, '2':0};
 function mouseevent(event) {
-	mouseevent_x = parseInt(event.layerX * 100 / zoom);
-	mouseevent_y = parseInt(event.layerY * 100 / zoom);
+	let x = event.layerX;
+	let y = event.layerY;
+	if(event.target.id == "cursor") {
+		x += event.target.offsetLeft;
+		y += event.target.offsetTop;
+	}
+	mouseevent_x = parseInt(x * 100 / zoom);
+	mouseevent_y = parseInt(y * 100 / zoom);
 	return mouseevent_x + " " + mouseevent_y;
 } 
 function mousewheel(event) {
 	if(event.target.id == "alt") return true;
 	if(event.target.id == "shift") return true;
 	if(event.target.id == "ctrl") return true;
+	if(event.target.id != "cursor")
+		if(event.target.id != "canvas") return true;
 	let k = keys(event);
 	if(monitor != null) {
 		ws.send("mousewheel "
@@ -243,6 +253,13 @@ function mousemove(event) {
 	if(event.target.id == "alt") return true;
 	if(event.target.id == "shift") return true;
 	if(event.target.id == "ctrl") return true;
+	if(event.target.id != "cursor")
+		if(event.target.id != "canvas") return true;
+	if(mouseevent_b['0'] > 0 && event.button != 0
+	|| mouseevent_b['1'] > 0
+	|| mouseevent_b['2'] > 0) {
+		
+	}
 	let k = keys(event);
 	if(monitor != null) {
 		if(mouseevent_b['0'] > 0
@@ -257,10 +274,12 @@ function mousemove(event) {
 	return false;
 } 
 function mousedown(event) {
+	console.log("mousedown " + event.button + " " + event.target.id);
 	if(event.target.id == "alt") return true;
 	if(event.target.id == "shift") return true;
 	if(event.target.id == "ctrl") return true;
-	console.log("mousedown " + event.button);
+	if(event.target.id != "cursor")
+		if(event.target.id != "canvas") return true;
 	E('body').focus();
 	let k = keys(event);
 	if(monitor != null) {
@@ -272,10 +291,12 @@ function mousedown(event) {
 	return false;
 }
 function mouseup(event) {
+	console.log("mouseup " + event.button + " " + event.target.id);
 	if(event.target.id == "alt") return true;
 	if(event.target.id == "shift") return true;
 	if(event.target.id == "ctrl") return true;
-	console.log("mouseup " + event.button);
+	if(event.target.id != "cursor")
+		if(event.target.id != "canvas") return true;
 	let k = keys(event);
 	if(monitor != null) {
 		mouseevent_b[event.button] = 0;
@@ -291,6 +312,8 @@ function dblclick(event) {
 	if(event.target.id == "alt") return true;
 	if(event.target.id == "shift") return true;
 	if(event.target.id == "ctrl") return true;
+	if(event.target.id != "cursor")
+		if(event.target.id != "canvas") return true;
 	console.log("dblclick " + event.button);
 	let k = keys(event);
 	if(monitor != null) {

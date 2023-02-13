@@ -1,5 +1,6 @@
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.net.http.WebSocket;
 
@@ -83,6 +84,9 @@ public class Main extends MainBase {
 					robot.keyRelease(KeyEvent.VK_ALT);
 				}
 				key = 0;
+				BufferedImage img = monitor.new_image();
+				monitor.image(img);
+				upload_image(img);
 				return true;
 			}
 
