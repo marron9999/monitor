@@ -1,5 +1,7 @@
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
@@ -36,6 +38,7 @@ public abstract class Frame extends JFrame {
 //	private JLabel drv;
 	public OutputStream stream;
 	private DataFlavor flavor = DataFlavor.javaFileListFlavor;
+	private BufferedImage icon;
 
 	public abstract void drop_file(File file);
 
@@ -57,12 +60,31 @@ public abstract class Frame extends JFrame {
 		p = val.indexOf("%");
 		if(p > 0)
 			val = val.substring(0, p);
-		val = "  " + val + "%";
-		val = val.substring(val.length() - 4);
+		//val = "  " + val + "%";
+		//val = val.substring(val.length() - 4);
 		return val;
 	}
+	private int pcpu = 0; 
 	public void setCPU(String val) {
-		cpu.setText(" CPU" + usage(val) + " ");
+		val = usage(val).trim();
+		int px = Integer.parseInt(val) / 7; 
+		val = "  " + val;
+		val = val.substring(val.length() - 3);
+		cpu.setText(" CPU" + val + "% ");
+		if(pcpu != px) {
+			pcpu = px;
+			BufferedImage bi = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+			Graphics g = bi.getGraphics();
+			g.setColor(new Color(0, 0, 0, 0));
+			g.fillRect(0, 0, 16, 16);
+			if(px > 0) {
+				g.setColor(new Color(0, 0x00aa, 0));
+				g.fillRect(0, 16 - px, 16, px);
+			}
+			g.drawImage(icon, 0,  0, null);
+			g.dispose();
+			setIconImage(bi);
+		}
 	}
 	public void setMEM(String val) {
 //		mem.setText(" MEM" + usage(val) + " ");
@@ -93,8 +115,8 @@ public abstract class Frame extends JFrame {
 
 		try {
 			InputStream is = getClass().getResourceAsStream("monitor.png");
-			BufferedImage bi = ImageIO.read(is);
-			setIconImage(bi);
+			icon = ImageIO.read(is);
+			setIconImage(icon);
 			is.close();
 		} catch (Exception e) {
 			e.printStackTrace();
