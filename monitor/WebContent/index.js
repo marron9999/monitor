@@ -436,6 +436,7 @@ function clients(o) {
 			monitor_id = null;
 			E('tool').className = "";
 			E('body').className = "";
+			E('right').className = "";
 			E('sysmon').style.color = null;
 		}
 		return;
@@ -470,6 +471,7 @@ function select(e) {
 		ws.send("view");
 		E('tool').className = "";
 		E('body').className = "";
+		E('right').className = "";
 		E('sysmon').style.color = null;
 		return;
 	}
@@ -493,6 +495,7 @@ function select(e) {
 	redraw();
 	E('tool').className = "s2";
 	E('body').className = "s2";
+	E('right').className = "s2";
 	E('sysmon').style.color = "black";
 	h = E('cursor');
 	h.style.display = "inline-block";
@@ -639,7 +642,7 @@ function showfile(e) {
 		clearTimeout(hideinfo_time);
 		hideinfo_time = null;
 	}
-	E("info").style.right = "215px";
+	E("info").style.right = "162px";
 	E("info").style.top = e.offsetTop + "px";
 	E("info").innerHTML  = "";
 	E("info").style.display = "inline-block";
