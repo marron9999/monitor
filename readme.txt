@@ -59,28 +59,37 @@
 	利用する場合は 第1引数に FQDN名/IPアドレス、
 	利用ポートが8080以外は「:xxxx」を指定してください。
 	
-	java -cp client.jar;javasysmon.jar Main myserver1
-	java -cp client.jar;javasysmon.jar Main myserver1:8080
+	java -cp *.jar Main myserver1
+	java -cp *.jar Main myserver1:8080
 
-	java -cp client.jar;javasysmon.jar Main myserver2:80
+	java -cp *.jar Main myserver2:80
 	
 	ブラウザの一覧に表示される名前はCOMPUTERNAMEとなります。
-	特別な名前を表示したい場合は第2引数に指定してください。　　　   　　　
+	特別な名前を表示したい場合は第2引数に指定してください。
 
-	java -cp client.jar;javasysmon.jar Main myserver1 my-computer
+	java -cp *.jar Main myserver1 my-computer
+
+	注) *.jar
+		- client.jar
+		- javasysmon.jar
+		- jna-5.13.0.jar
+		- jna-platform-5.13.0.jar
 
 ■ 参考　：　使った技術要素
 
 【【【 client側 】】】
 
-　　client_imports.txt 参照
+	client_imports.txt 参照
 
-　　javasysmon
-　　https://github.com/jezhumble/javasysmon
+	javasysmon
+	https://github.com/jezhumble/javasysmon
+
+	Java Native Access (JNA)
+	https://github.com/java-native-access/jna
 
 【【【 monitor側 : 500行くらい 】】】
 
-　　monitor_imports.txt 参照
+	monitor_imports.txt 参照
 
 【【【 monitor側(Web) 】】】
 
@@ -89,7 +98,7 @@
 	- canvas
 	- image
 	- div/span他
-- JavaScript 
+- JavaScript
 	- WebSocket
 	- EventListener
 	- DropTarget
@@ -101,20 +110,23 @@
 client -> monitor
 	マウス位置をOS:Windowsから取得し、
 	WebSocket（文字列）で随時送信
+	マウス形状はOS:Windowsからイメージで取得し、
+	Http Postで送信
 	Robot機能でWindowsスクリーン(Image)を取得し、
-	Http Postで随時送信 
+	Http Postで随時送信
 	
 monitor -> browser 
-	WebSocket（文字列）でマウス位置等を随時送信 
-	Windowsスクリーン(Image)受信したらWebSocket（文字列）で再描画要を送信 
+	WebSocket（文字列）でマウス位置等を随時送信
+	Windowsスクリーン(Image)受信したらWebSocket（文字列）で再描画要を送信
+	マウス形状はimg srcにURLを設定(Http getで取得)
 
 browser -> monitor 
-	キー操作、マウス操作等をWebSocket（文字列）で随時送信 
+	キー操作、マウス操作等をWebSocket（文字列）で随時送信
 	リモード画面(Image)をHttp Getで取得（canvas描画）
 
 monitor -> client  
-	キー操作、マウス操作等をWebSocket（文字列）で受信し
+	キー操作、マウス操作等をWebSocket（文字列）で受信
 
-client -> OS:Windows   
+client -> OS:Windows
 	Robot機能でWindows OSへ通知
  
