@@ -32,6 +32,21 @@ public class WS {
 		}
 	}
 
+	public static byte[] client_cursor(String id, String ix) {
+		Client client = clients.get(id);
+		if(client != null) {
+			return client.cursor(ix);
+		}
+		return null;
+	}
+
+	public static void client_cursor(String id, String ix, byte[] img) {
+		Client client = clients.get(id);
+		if(client != null) {
+			client.cursor(ix, img);
+		}
+	}
+
 	public static void client_update_files(String id) {
 		Client client = clients.get(id);
 		if(client != null) {
@@ -67,6 +82,18 @@ public class WS {
 			return client.info_file(name);
 		}
 		return null;
+	}
+
+	public static String[] client_mouse(String id) {
+		if(id == null) return null;
+		Client client = null;
+		synchronized (clients) {
+			client = clients.get(id);
+		}
+		if(client != null) {
+			return client.mouse();
+		}
+		return new String[] {"", "", ""};
 	}
 
 	public static String[] client_sysmon(String id) {

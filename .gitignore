@@ -1,3 +1,4 @@
 *.class
 bin/*
 client/javasysmon64.dll
+*.zip

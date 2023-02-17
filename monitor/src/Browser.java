@@ -87,8 +87,13 @@ public class Browser {
 
 			try {
 				Dimension size = WS.client_size(ope[1]);
+				String[] mouse = WS.client_mouse(ope[1]);
 				if(size != null) {
 					sendText("screen " + size.width + " " + size.height);
+					if(mouse[0].length() > 0)
+						sendText("mouse " + mouse[0] + " " + mouse[1]);
+					if(mouse[2].length() > 0)
+						sendText("cursor " + mouse[2] + " " + mouse[3] + " " + mouse[4]);
 					synchronized (this) {
 						monitor_id = ope[1]; 
 					}

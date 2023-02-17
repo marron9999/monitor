@@ -5,14 +5,15 @@ import com.jezhumble.javasysmon.JavaSysMon;
 import com.jezhumble.javasysmon.MemoryStats;
 
 public class SysMon {
+	static {
+		System.setProperty("JAVA_SYS_MON_TEMP_DIR", ".");
+	}
 
 	private JavaSysMon sysmon = null;
 	
 	public SysMon() {
 		try {
-			System.setProperty("JAVA_SYS_MON_TEMP_DIR", ".");
 			sysmon = new JavaSysMon();
-			System.clearProperty("JAVA_SYS_MON_TEMP_DIR");
 		} catch (Exception e) {
 			// NONE
 		}

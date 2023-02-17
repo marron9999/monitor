@@ -17,6 +17,7 @@ public class Client {
 	private Session session;
 	private Monitor monitor;
 	private Map<String, File> files = null;
+	private Map<String, byte[]> cursors = new HashMap<>();
 	private String[] names = null;
 	private String cpu_usage = "";
 	private String cpu_info = "";
@@ -24,6 +25,7 @@ public class Client {
 	private String mem_info = "";
 	private String drv_usage = "";
 	private String drv_info = "";
+	private String[] mouse = new String[] {"", "", "", "", ""};
 
 	public void sendText(String text) {
 		try {
@@ -104,6 +106,26 @@ public class Client {
 		}
 	}
 
+	public byte[] cursor(String ix) {
+		try {
+			return cursors.get(ix);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+	public void cursor(String ix, byte[] img) {
+		try {
+			cursors.put(ix, img);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public String[] mouse() {
+		return mouse;
+	}
+
 	public String info_cpu() {
 		return cpu_info;
 	}
@@ -162,6 +184,17 @@ public class Client {
 		}
 
 		if(ope[0].equalsIgnoreCase("mouse")) {
+			mouse[0] = ope[1];
+			mouse[1] = ope[2];
+			String t = String.join(" ", ope);
+			WS.monitor_sendText(session.getId(), t);
+			return;
+		}
+
+		if(ope[0].equalsIgnoreCase("cursor")) {
+			mouse[2] = ope[1];
+			mouse[3] = ope[2];
+			mouse[4] = ope[3];
 			String t = String.join(" ", ope);
 			WS.monitor_sendText(session.getId(), t);
 			return;

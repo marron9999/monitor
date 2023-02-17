@@ -25,6 +25,7 @@ window.onload = function() {
 	ws["files"] = files;
 	ws["screen"] = screen;
 	ws["mouse"] = mouse;
+	ws["cursor"] = cursor;
 	ws["redraw"] = redraw;
 	ws["sysmon"] = sysmon;
 	ws["cpu"] = sysinfo;
@@ -327,17 +328,19 @@ function dblclick(event) {
 
 var mouse_x = 0;
 var mouse_y = 0;
+var mouse_cx = 0;
+var mouse_cy = 0;
 function mouse(o) {
 	mouse_x = parseInt(o[1]);
 	mouse_y = parseInt(o[2]);
 	_mouse();
 }
 function _mouse() {
-	let x = parseInt(mouse_x * zoom / 100);
-	let y = parseInt(mouse_y * zoom / 100);
+	let x = parseInt((mouse_x - mouse_cx) * zoom / 100);
+	let y = parseInt((mouse_y - mouse_cy) * zoom / 100);
 	let c = E('cursor');
-	c.style.left = (x - 5) + "px";
-	c.style.top = (y - 5) + "px";
+	c.style.left = x + "px";
+	c.style.top = y + "px";
 }
 
 var redraw_time = null;
@@ -357,6 +360,12 @@ function redraw_image() {
 function redraw() {
 	redraw_src = "http://" + host + ":" + port + "/monitor/api?id=" + monitor_id;
 	_redraw()
+}	
+function cursor(o) {
+	mouse_cx = parseInt(o[2])
+	mouse_cy = parseInt(o[3])
+	let c = E('cursor');
+	c.src = "http://" + host + ":" + port + "/monitor/api?id=" + monitor_id + "&cursor=" + o[1];
 }	
 function _redraw() {
 	if(redraw_src == null) return;

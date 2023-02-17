@@ -21,6 +21,7 @@ public class API extends APIBase {
 		String id = getParameter(request, "id");
 		String file = getParameter(request, "file");
 		String temp = getParameter(request, "temp");
+		String cursor = getParameter(request, "cursor");
 		if(id.length() > 0) {
 
 			if(file.length() > 0) {
@@ -63,6 +64,20 @@ public class API extends APIBase {
 				return;
 			}
 
+			if(cursor.length() > 0) {
+				byte[] img = WS.client_cursor(id, cursor);
+				if(img != null) {
+					ServletOutputStream sos = getImageOutputStream(response, "PNG");
+					sos.write(img);
+					sos.close();
+					response.setStatus(HttpServletResponse.SC_OK);
+					return;
+				}
+
+				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+				return;
+			}
+
 			BufferedImage img = WS.client_image(id);
 			if(img != null) {
 				ServletOutputStream sos = getImageOutputStream(response, "PNG");
@@ -83,6 +98,7 @@ public class API extends APIBase {
 		setAccessControlAllow(request, response);
 		String id = getParameter(request, "id");
 		String file = getParameter(request, "file");
+		String cursor = getParameter(request, "cursor");
 		if(id.length() > 0) {
 
 			if(file.length() > 0) {
@@ -93,6 +109,13 @@ public class API extends APIBase {
 					return;
 				}
 				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+				return;
+			}
+
+			if(cursor.length() > 0) {
+				byte[] img = getRequestBody(request);
+				WS.client_cursor(id, cursor, img);
+				response.setStatus(HttpServletResponse.SC_OK);
 				return;
 			}
 

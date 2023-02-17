@@ -53,25 +53,25 @@ public class APIBase extends HttpServlet {
 		return null;
 	}
 
-//	protected byte[] getRequestBody(HttpServletRequest request) {
-//		ByteArrayOutputStream body = new ByteArrayOutputStream();
-//		InputStream is = null;
-//		try {
-//			is = request.getInputStream();
-//			byte[] buffer = new byte[4096];
-//			int length;
-//			while ((length = is.read(buffer)) >= 0) {
-//				body.write(buffer, 0, length);
-//			}
-//			is.close();
-//			buffer = body.toByteArray();
-//			body.close();
-//			return buffer;
-//		} catch (Exception e) {
-//			// NONE
-//		}
-//		return null;
-//	}
+	protected byte[] getRequestBody(HttpServletRequest request) {
+		ByteArrayOutputStream body = new ByteArrayOutputStream();
+		InputStream is = null;
+		try {
+			is = request.getInputStream();
+			byte[] buffer = new byte[4096];
+			int length;
+			while ((length = is.read(buffer)) >= 0) {
+				body.write(buffer, 0, length);
+			}
+			is.close();
+			buffer = body.toByteArray();
+			body.close();
+			return buffer;
+		} catch (Exception e) {
+			// NONE
+		}
+		return null;
+	}
 
 	protected File getRequestBody_downloads(HttpServletRequest request, String file) {
 		if(file == null) return null;

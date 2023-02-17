@@ -1,6 +1,4 @@
 import java.awt.Graphics;
-import java.awt.MouseInfo;
-import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Robot;
 import java.awt.image.BufferedImage;
@@ -34,9 +32,13 @@ public abstract class MainBase {
 	protected String id = null;
 	protected int mouse_x = -1;
 	protected int mouse_y = -1;
+	protected int mouse_c = -1;
+	protected int mouse_cx = -1;
+	protected int mouse_cy = -1;
 	protected boolean verbose = false;
 	protected int sleep = 500;
 	protected Frame frame;
+	protected Mouse mouse = null;
 	protected ExecutorService service = Executors.newCachedThreadPool();
 
 	protected abstract boolean onMessage(WebSocket webSocket, String message);
@@ -109,6 +111,17 @@ public abstract class MainBase {
 				}
 			}
 
+		};
+		mouse = new Mouse() {
+			@Override
+			public boolean isAdd(int ix) {
+				if(id != null) {
+					BufferedImage bi = mouse.getCursorImage();
+					upload_cursor(ix, bi);
+					return true;
+				}
+				return false;
+			}
 		};
 		robot = new Robot();
 		sysmon = new SysMon();
@@ -215,6 +228,18 @@ public abstract class MainBase {
 			sm = sysmon.curr_drv();
 			ws.sendText(sm, true);
 		}
+		{
+			mouse.getCursor();
+			if(mouse.cursor_c >= 0) {
+				mouse_x = mouse.cursor_x;
+				mouse_y = mouse.cursor_y;
+				ws.sendText("mouse " + mouse_x + " " + mouse_y, true);
+				mouse_c = mouse.cursor_c;
+				mouse_cx = mouse.hotspot_x;
+				mouse_cy = mouse.hotspot_y;
+				ws.sendText("cursor " + mouse_c + " " + mouse_cx + " " + mouse_cy, true);
+			}
+		}
 
 		img = monitor.new_image();
 		while(ws != null) {
@@ -228,12 +253,21 @@ public abstract class MainBase {
 				upload_image(diff);
 			}
 
-			Point p = MouseInfo.getPointerInfo().getLocation();
-			if(p.x != mouse_x || p.y != mouse_y) {
-				mouse_x = p.x;
-				mouse_y = p.y;
+			mouse.getCursor();
+			if(mouse.cursor_x != mouse_x
+			|| mouse.cursor_y != mouse_y) {
+				mouse_x = mouse.cursor_x;
+				mouse_y = mouse.cursor_y;
 				if(ws != null) {
 					ws.sendText("mouse " + mouse_x + " " + mouse_y, true);
+				}
+			}
+			if(mouse.cursor_c != mouse_c) {
+				mouse_c = mouse.cursor_c;
+				mouse_cx = mouse.hotspot_x;
+				mouse_cy = mouse.hotspot_y;
+				if(ws != null) {
+					ws.sendText("cursor " + mouse_c + " " + mouse_cx + " " + mouse_cy, true);
 				}
 			}
 
@@ -285,7 +319,8 @@ public abstract class MainBase {
 			public void run() {
 				Thread.currentThread().setName("upload_image");
 				try {
-					http_post_image(monitor.buffer(image));
+					//http_post_image(monitor.buffer(image));
+					http_post(null, "image/PNG", monitor.buffer(image));
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -294,14 +329,29 @@ public abstract class MainBase {
 		});
 	}
 	
+	protected void upload_cursor(int ix, BufferedImage image) {
+		//service.execute(new Runnable() {
+		//	@Override
+		//	public void run() {
+		//		Thread.currentThread().setName("upload_cursor");
+				try {
+					http_post("cursor=" + ix, "image/PNG", monitor.buffer(image));
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+		//		Thread.currentThread().setName("-");
+		//	}
+		//});
+	}
+	
 	protected int http_post_bytes(String file, byte[] buf) throws Exception {
 		String arg = "file=" + URLEncoder.encode(file, "utf-8");
 		return http_post(arg, "binary/octet-stream", buf);
 	}
 
-	protected int http_post_image(byte[] buf) throws Exception {
-		return http_post(null, "image/PNG", buf);
-	}
+	//protected int http_post_image(byte[] buf) throws Exception {
+	//	return http_post(null, "image/PNG", buf);
+	//}
 
 	protected int http_post(String arg, String type, byte[] buf) throws Exception {
 		if(arg == null) arg = "";
