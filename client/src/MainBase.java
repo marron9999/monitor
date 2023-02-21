@@ -94,6 +94,27 @@ public abstract class MainBase {
 		}
 	}
 
+	
+	private void mouse() {
+		mouse.getCursor();
+		if(mouse.cursor_x != mouse_x
+		|| mouse.cursor_y != mouse_y) {
+			mouse_x = mouse.cursor_x;
+			mouse_y = mouse.cursor_y;
+			if(ws != null) {
+				ws.sendText("mouse " + mouse_x + " " + mouse_y, true);
+			}
+		}
+		if(mouse.cursor_c != mouse_c) {
+			mouse_c = mouse.cursor_c;
+			mouse_cx = mouse.hotspot_x;
+			mouse_cy = mouse.hotspot_y;
+			if(ws != null) {
+				ws.sendText("cursor " + mouse_c + " " + mouse_cx + " " + mouse_cy, true);
+			}
+		}
+	}
+
 	public void run(String[] args) throws Exception {
 		frame = new Frame() {
 			protected static final long serialVersionUID = 1L;
@@ -220,26 +241,10 @@ public abstract class MainBase {
 			Monitor.sleep(sleep);
 		}
 
-		{
-			String sm = sysmon.curr_cpu();
-			ws.sendText(sm, true);
-			sm = sysmon.curr_mem();
-			ws.sendText(sm, true);
-			sm = sysmon.curr_drv();
-			ws.sendText(sm, true);
-		}
-		{
-			mouse.getCursor();
-			if(mouse.cursor_c >= 0) {
-				mouse_x = mouse.cursor_x;
-				mouse_y = mouse.cursor_y;
-				ws.sendText("mouse " + mouse_x + " " + mouse_y, true);
-				mouse_c = mouse.cursor_c;
-				mouse_cx = mouse.hotspot_x;
-				mouse_cy = mouse.hotspot_y;
-				ws.sendText("cursor " + mouse_c + " " + mouse_cx + " " + mouse_cy, true);
-			}
-		}
+		mouse_x = -1;
+		mouse_y = -1;
+		mouse_c = -1;
+		mouse();
 
 		img = monitor.new_image();
 		while(ws != null) {
@@ -253,24 +258,7 @@ public abstract class MainBase {
 				upload_image(diff);
 			}
 
-			mouse.getCursor();
-			if(mouse.cursor_x != mouse_x
-			|| mouse.cursor_y != mouse_y) {
-				mouse_x = mouse.cursor_x;
-				mouse_y = mouse.cursor_y;
-				if(ws != null) {
-					ws.sendText("mouse " + mouse_x + " " + mouse_y, true);
-				}
-			}
-			if(mouse.cursor_c != mouse_c) {
-				mouse_c = mouse.cursor_c;
-				mouse_cx = mouse.hotspot_x;
-				mouse_cy = mouse.hotspot_y;
-				if(ws != null) {
-					ws.sendText("cursor " + mouse_c + " " + mouse_cx + " " + mouse_cy, true);
-				}
-			}
-
+			mouse();
 			sysmon();
 
 			Monitor.sleep(sleep);

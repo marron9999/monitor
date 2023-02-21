@@ -58,6 +58,7 @@ public class Main extends MainBase {
 			}
 
 			if(ope[1].equalsIgnoreCase("@reset")) {
+				mouse.reset();
 				if((button & 0x01) != 0) {
 					System.out.println("reset BUTTON1_DOWN_MASK");
 					robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK);

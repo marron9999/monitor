@@ -17,7 +17,7 @@ public class Monitor {
 	
 	public static void sleep(int msec) {
 		try {
-			Thread.sleep(100);
+			Thread.sleep(msec);
 		} catch (Exception e) {
 			// NONE
 		}
