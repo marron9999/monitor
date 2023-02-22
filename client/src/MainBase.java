@@ -28,7 +28,7 @@ public abstract class MainBase {
 	protected Robot robot;
 	protected Monitor monitor = null;
 	protected SysMon sysmon = null;
-	protected String site = "ws://192.168.1.127:8080/monitor/ws";
+	protected String site = "ws://localhost:8080/monitor/ws";
 	protected String id = null;
 	protected int mouse_x = -1;
 	protected int mouse_y = -1;
@@ -48,6 +48,10 @@ public abstract class MainBase {
 		if(opt.equalsIgnoreCase("-v")
 		|| opt.equalsIgnoreCase("--verbose")) {
 			verbose = true;
+			return true;
+		}
+		if(opt.equalsIgnoreCase("--iconcpu")) {
+			frame.iconcpu = true;
 			return true;
 		}
 		if(opt.startsWith("-s")) {
@@ -133,6 +137,7 @@ public abstract class MainBase {
 			}
 
 		};
+
 		mouse = new Mouse() {
 			@Override
 			public boolean isAdd(int ix) {
@@ -144,9 +149,11 @@ public abstract class MainBase {
 				return false;
 			}
 		};
+
 		robot = new Robot();
 		sysmon = new SysMon();
 		monitor = new Monitor(Monitor.toolkit.getScreenSize(), null);
+
 		int i=0;
 		while(i < args.length) {
 			if( ! parse_args(args[i])) break;
@@ -163,14 +170,28 @@ public abstract class MainBase {
 		}
 		if(monitor == null)
 			monitor = new Monitor(Monitor.toolkit.getScreenSize(), null);
+
 		BufferedImage img = monitor.new_image();
 		monitor.image(img);
+
 		frame.setTitle(monitor.name());
 		System.setOut(new PrintStream(frame.stream));
 		System.setErr(System.out);
-		System.out.println("Server: " + site);
-		URI uri = URI.create(site);
+
 		Rectangle rect = new Rectangle(monitor.size());		
+		System.out.println("Server: " + site);
+		String message = "screen " + rect.width + " " + rect.height;
+		System.out.println(message);
+		message = "name " + monitor.name();
+		System.out.println(message);
+		message = "sleep " + sleep;
+		System.out.println(message);
+		message = "iconcpu " + frame.iconcpu;
+		System.out.println(message);
+		message = "verbose " + verbose;
+		System.out.println(message);
+		
+		URI uri = URI.create(site);
 		client = HttpClient.newHttpClient();
 		WebSocket.Builder wsb = client.newWebSocketBuilder();
 		while(ws == null) {
@@ -221,24 +242,28 @@ public abstract class MainBase {
 			Monitor.sleep(500);
 		}
 
-		String message = "screen " + rect.width + " " + rect.height;
-		System.out.println(message);
+		message = "screen " + rect.width + " " + rect.height;
 		ws.sendText(message, true);
-
 		message = "name " + monitor.name();
-		System.out.println(message);
 		ws.sendText(message, true);
-
-		message = "sleep " + sleep;
-		System.out.println(message);
-
-		message = "verbose " + verbose;
-		System.out.println(message);
 
 		while(id == null) {
 			sysmon();
 
-			Monitor.sleep(sleep);
+			Monitor.sleep(500);
+		}
+
+		message = sysmon.curr_cpu();
+		if(message != null) {
+			ws.sendText(message, true);
+		}
+		message = sysmon.curr_mem();
+		if(message != null) {
+			ws.sendText(message, true);
+		}
+		message = sysmon.curr_drv();
+		if(message != null) {
+			ws.sendText(message, true);
 		}
 
 		mouse_x = -1;
@@ -307,7 +332,6 @@ public abstract class MainBase {
 			public void run() {
 				Thread.currentThread().setName("upload_image");
 				try {
-					//http_post_image(monitor.buffer(image));
 					http_post(null, "image/PNG", monitor.buffer(image));
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -336,10 +360,6 @@ public abstract class MainBase {
 		String arg = "file=" + URLEncoder.encode(file, "utf-8");
 		return http_post(arg, "binary/octet-stream", buf);
 	}
-
-	//protected int http_post_image(byte[] buf) throws Exception {
-	//	return http_post(null, "image/PNG", buf);
-	//}
 
 	protected int http_post(String arg, String type, byte[] buf) throws Exception {
 		if(arg == null) arg = "";
@@ -387,13 +407,4 @@ public abstract class MainBase {
 			dir.delete();
 		return dir;
 	}
-
-//	protected void close() {
-//		try {
-//			CompletableFuture<WebSocket> end = ws.sendClose(WebSocket.NORMAL_CLOSURE, "Bye");
-//			end.get();
-//		} catch (Exception e) {
-//			// NONE
-//		}
-//	}
 }

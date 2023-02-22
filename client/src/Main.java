@@ -15,7 +15,7 @@ public class Main extends MainBase {
 	protected int button;
 	protected int key;
 
-	private Boolean string() {
+	private Boolean ope_string() {
 		if(ope[0].trim().equalsIgnoreCase("string")) {
 
 			if(ope[1].equalsIgnoreCase("@verbose")) {
@@ -23,6 +23,21 @@ public class Main extends MainBase {
 				try {
 					verbose = Boolean.parseBoolean(ope[2]);
 					message = "verbose " + verbose;
+				} catch (Exception e) {
+					//e.printStackTrace();
+				}
+				System.out.println(message);
+				return true;
+			}
+
+			if(ope[1].equalsIgnoreCase("@iconcpu")) {
+				message = "iconcpu " + verbose;
+				try {
+					frame.iconcpu = Boolean.parseBoolean(ope[2]);
+					message = "iconcpu " + frame.iconcpu;
+					if( ! frame.iconcpu) {
+						frame.setIconImage(null);
+					}
 				} catch (Exception e) {
 					//e.printStackTrace();
 				}
@@ -91,6 +106,13 @@ public class Main extends MainBase {
 				return true;
 			}
 
+			message = message.substring(ope[0].length()+1).trim();
+			
+			if(ope[1].charAt(0) == '@') {
+				System.out.println("? " + message);
+				return true;
+			}
+
 			paste(message.substring(ope[0].length()+1).trim());
 			return true;
 		}
@@ -98,7 +120,7 @@ public class Main extends MainBase {
 		return null;
 	}
 
-	private Boolean key() {
+	private Boolean ope_key() {
 		if(ope[0].trim().equalsIgnoreCase("keydown")) {
 			boolean rc = true;
 			try {
@@ -168,7 +190,7 @@ public class Main extends MainBase {
 		return false;
 	}
 
-	private Boolean mouse() {
+	private Boolean ope_mouse() {
 		if(ope[0].trim().equalsIgnoreCase("dblclick")) {
 			if(ope[3].equals("0")) { 
 				if(mouse_xy()) {
@@ -271,7 +293,7 @@ public class Main extends MainBase {
 		return null;
 	}
 
-	private Boolean download() {
+	private Boolean ope_download() {
 		if(ope[0].trim().equalsIgnoreCase("download")) {
 			String iname = ope[1];
 			String oname = ope[2];
@@ -299,7 +321,7 @@ public class Main extends MainBase {
 		return null;
 	}
 	
-	private Boolean sysmon() {
+	private Boolean ope_sysmon() {
 		if(ope[0].trim().equalsIgnoreCase("sysmon")) {
 			String rc = sysmon.curr_cpu();
 			if(rc != null) {
@@ -327,15 +349,14 @@ public class Main extends MainBase {
 		alt = (message.indexOf(" alt") >= 0)? true : false; 
 		shift = (message.indexOf(" shift") >= 0)? true : false; 
 		Boolean rc;
-		if((rc = string()) != null) return rc;
-		if((rc = key()) != null) return rc;
-		if((rc = mouse()) != null) return rc;
-		if((rc = sysmon()) != null) return rc;
-		if((rc = download()) != null) return rc;
+		if((rc = ope_string()) != null) return rc;
+		if((rc = ope_key()) != null) return rc;
+		if((rc = ope_mouse()) != null) return rc;
+		if((rc = ope_sysmon()) != null) return rc;
+		if((rc = ope_download()) != null) return rc;
 
 		if(ope[0].trim().equalsIgnoreCase("id")) {
-			if( ! verbose)
-				System.out.println(message);
+			System.out.println(message);
 			id = ope[1].trim();
 			frame.setTitle(id + ": " + monitor.name());
 			return true;

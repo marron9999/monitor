@@ -2,6 +2,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.Image;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.dnd.DnDConstants;
@@ -39,6 +40,7 @@ public abstract class Frame extends JFrame {
 	public OutputStream stream;
 	private DataFlavor flavor = DataFlavor.javaFileListFlavor;
 	private BufferedImage icon;
+	public boolean iconcpu = false;
 
 	public abstract void drop_file(File file);
 
@@ -71,21 +73,31 @@ public abstract class Frame extends JFrame {
 		val = "  " + val;
 		val = val.substring(val.length() - 3);
 		cpu.setText(" CPU" + val + "% ");
-		if(pcpu != px) {
-			pcpu = px;
-			BufferedImage bi = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
-			Graphics g = bi.getGraphics();
-			g.setColor(new Color(0, 0, 0, 0));
-			g.fillRect(0, 0, 16, 16);
-			if(px > 0) {
-				g.setColor(new Color(0, 0x00aa, 0));
-				g.fillRect(0, 16 - px, 16, px);
+		if(iconcpu) {
+			if(pcpu != px) {
+				pcpu = px;
+				BufferedImage bi = new BufferedImage(16, 16, BufferedImage.TYPE_INT_ARGB);
+				Graphics g = bi.getGraphics();
+				g.setColor(new Color(0, 0, 0, 0));
+				g.fillRect(0, 0, 16, 16);
+				if(px > 0) {
+					g.setColor(new Color(0, 0x00aa, 0));
+					g.fillRect(0, 16 - px, 16, px);
+				}
+				g.drawImage(icon, 0,  0, null);
+				g.dispose();
+				setIconImage(bi);
 			}
-			g.drawImage(icon, 0,  0, null);
-			g.dispose();
-			setIconImage(bi);
 		}
 	}
+
+	@Override
+	public void setIconImage(Image image) {
+		if(image == null)
+			image = icon;
+		super.setIconImage(image);
+	}
+	
 	public void setMEM(String val) {
 //		mem.setText(" MEM" + usage(val) + " ");
 	}

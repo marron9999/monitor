@@ -55,21 +55,21 @@
 
 	java -cp client.jar;javasysmon.jar Main
 	
-	デフォルトのWebサーバー（192.168.1.127:8080）以外を
-	利用する場合は 第1引数に FQDN名/IPアドレス、
-	利用ポートが8080以外は「:xxxx」を指定してください。
+	デフォルトのWebサーバーが　localhost:8080　となっていますので
+	利用するWebサーバーを 第1引数に FQDN名/IPアドレスを指定し、
+	利用ポートが8080以外は「:xxxx」を付加して指定してください。
 	
-	java -cp *.jar Main myserver1
-	java -cp *.jar Main myserver1:8080
+	java -cp <jars> Main myserver1
+	java -cp <jars> Main myserver1:8080
 
-	java -cp *.jar Main myserver2:80
+	java -cp <jars> Main myserver2:80
 	
 	ブラウザの一覧に表示される名前はCOMPUTERNAMEとなります。
 	特別な名前を表示したい場合は第2引数に指定してください。
 
-	java -cp *.jar Main myserver1 my-computer
+	java -cp <jars> Main myserver1 my-computer
 
-	注) *.jar
+	注) <jars>は、以下を ; で連結した文字列です
 		- client.jar
 		- javasysmon.jar
 		- jna-5.13.0.jar
