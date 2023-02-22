@@ -313,10 +313,6 @@ public class WS {
 	@OnClose
 	public void onClose(Session session) {
 		String id = session.getId();
-		remove(id);
-	}
-
-	private void remove(String id) {
 		synchronized (clients) {
 			if(clients.containsKey(id)) {
 				clients.remove(id);
